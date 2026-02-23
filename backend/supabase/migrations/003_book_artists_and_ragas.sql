@@ -1,5 +1,5 @@
 -- ============================================================
--- Carnatic App — Migration 003
+-- Carnatic App -- Migration 003
 -- Source: Appendix B & C from teacher's reference book
 -- This is the authoritative curated list for the app
 -- ============================================================
@@ -8,21 +8,20 @@
 -- RAGAS TABLE
 -- ============================================================
 CREATE TABLE ragas (
-  id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name          TEXT NOT NULL UNIQUE,
-  name_variants TEXT[] DEFAULT '{}',        -- alternate spellings/names
-  raga_type     TEXT CHECK (raga_type IN ('melakarta', 'janya', 'other')),
-  melakarta_number INTEGER,                 -- 1-72 if it's a melakarta
-  parent_melakarta TEXT,                    -- for janya ragas, which melakarta
-  is_popular    BOOLEAN DEFAULT FALSE,      -- from Appendix B popular list
-  notes         TEXT,
-  created_at    TIMESTAMPTZ DEFAULT NOW()
+  id               UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name             TEXT NOT NULL UNIQUE,
+  name_variants    TEXT[] DEFAULT '{}',
+  raga_type        TEXT CHECK (raga_type IN ('melakarta', 'janya', 'other')),
+  melakarta_number INTEGER,
+  parent_melakarta TEXT,
+  is_popular       BOOLEAN DEFAULT FALSE,
+  notes            TEXT,
+  created_at       TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE INDEX idx_ragas_name ON ragas(name);
 CREATE INDEX idx_ragas_type ON ragas(raga_type);
 
--- RLS
 ALTER TABLE ragas ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Ragas are public read" ON ragas FOR SELECT USING (true);
 CREATE POLICY "Only admins can modify ragas" ON ragas FOR ALL USING (
@@ -107,60 +106,70 @@ INSERT INTO ragas (name, raga_type, melakarta_number, is_popular) VALUES
 ('Rasikapriya',           'melakarta', 72,  FALSE);
 
 -- ============================================================
--- APPENDIX B — POPULAR JANYA RAGAS
--- (as listed in teacher's book)
+-- APPENDIX B -- POPULAR JANYA RAGAS (teacher's book)
 -- ============================================================
 INSERT INTO ragas (name, name_variants, raga_type, is_popular) VALUES
-('Abheri',           ARRAY['Abhiri'],                        'janya', TRUE),
-('Abhogi',           ARRAY[],                                'janya', TRUE),
-('Ahiri',            ARRAY[],                                'janya', TRUE),
+('Abheri',           ARRAY['Abhiri'],                         'janya', TRUE),
+('Abhogi',           ARRAY[]::TEXT[],                         'janya', TRUE),
+('Ahiri',            ARRAY[]::TEXT[],                         'janya', TRUE),
 ('Amrtavarshini',    ARRAY['Amrutavarshini','Amritavarshini'],'janya', TRUE),
-('Athanaa',          ARRAY['Athana'],                        'janya', TRUE),
-('Behag',            ARRAY['Behaga'],                        'janya', TRUE),
-('Bilahari',         ARRAY[],                                'janya', TRUE),
-('Bindhumalini',     ARRAY['Bindumalini'],                   'janya', TRUE),
-('Bowli',            ARRAY[],                                'janya', TRUE),
-('Darbar',           ARRAY['Durbar'],                        'janya', TRUE),
-('Devagandhari',     ARRAY['Devagandhari'],                  'janya', TRUE),
-('Hamsadhvani',      ARRAY['Hamsadhwani'],                   'janya', TRUE),
-('Huseni',           ARRAY['Husaini'],                       'janya', TRUE),
-('Jaganmohini',      ARRAY[],                                'janya', TRUE),
-('Janaranjani',      ARRAY[],                                'janya', TRUE),
-('Jayantashree',     ARRAY['Jayanthasri'],                   'janya', TRUE),
-('Kadanakutoohalam', ARRAY['Kadanakudhuhalam'],              'janya', TRUE),
-('Kalyanavasamtam',  ARRAY['Kalyanavasamtham'],              'janya', TRUE),
-('Kamalaamanohari',  ARRAY['Kamalamannohari'],               'janya', TRUE),
-('Kanada',           ARRAY['Kannada'],                       'janya', TRUE),
-('Kannadagowla',     ARRAY[],                                'janya', TRUE),
-('Karnaranjani',     ARRAY[],                                'janya', TRUE),
-('Kedaragowla',      ARRAY['Kedara gowla'],                  'janya', TRUE),
-('Kedaram',          ARRAY[],                                'janya', TRUE),
-('Kuntalavarali',    ARRAY['Kuntalavarali'],                 'janya', TRUE),
-('Lalita',           ARRAY[],                                'janya', TRUE),
-('Madhyamavati',     ARRAY['Madhyamavathi'],                 'janya', TRUE),
-('Malayamarutam',    ARRAY['Malayamarutham'],                'janya', TRUE),
-('Mohanakalyani',    ARRAY['Mohanakalyani'],                 'janya', TRUE),
-('Mukhari',          ARRAY[],                                'janya', TRUE),
-('Nalinakanti',      ARRAY['Nalinakanthi'],                  'janya', TRUE),
-('Nattaikuranji',    ARRAY['Nattaikurinji'],                 'janya', TRUE),
-('Navarasakannada',  ARRAY[],                                'janya', TRUE),
-('Paras',            ARRAY['Paraas'],                        'janya', TRUE),
-('Poorvikalyani',    ARRAY['Purvi Kalyani'],                 'janya', TRUE),
-('Ranjani',          ARRAY[],                                'janya', TRUE),
-('Reetigowla',       ARRAY['Reeti Gowla'],                   'janya', TRUE),
-('Saranga',          ARRAY[],                                'janya', TRUE),
-('Sarasvati',        ARRAY['Saraswati'],                     'janya', TRUE),
-('Shreeranjani',     ARRAY['Sree Ranjani'],                  'janya', TRUE),
-('Shuddhadhanyasi',  ARRAY['Suddha Dhanyasi'],               'janya', TRUE),
-('Sindhubhairavi',   ARRAY['Sindhu Bhairavi'],               'janya', TRUE),
-('Sowrashthra',      ARRAY['Sowrashtram','Saurashtra'],       'janya', TRUE),
-('Sunadavinodini',   ARRAY['Shunaadavinodini'],              'janya', TRUE),
-('Surati',           ARRAY[],                                'janya', TRUE),
-('Valachi',          ARRAY['Valaji'],                        'janya', TRUE),
-('Vasanta',          ARRAY['Vasantha'],                      'janya', TRUE),
-('Yamunakalyani',    ARRAY['Yamuna Kalyani','Yaman Kalyani'],'janya', TRUE);
+('Athanaa',          ARRAY['Athana'],                         'janya', TRUE),
+('Behag',            ARRAY['Behaga'],                         'janya', TRUE),
+('Bilahari',         ARRAY[]::TEXT[],                         'janya', TRUE),
+('Bindhumalini',     ARRAY['Bindumalini'],                    'janya', TRUE),
+('Bowli',            ARRAY[]::TEXT[],                         'janya', TRUE),
+('Darbar',           ARRAY['Durbar'],                         'janya', TRUE),
+('Devagandhari',     ARRAY[]::TEXT[],                         'janya', TRUE),
+('Hamsadhvani',      ARRAY['Hamsadhwani'],                    'janya', TRUE),
+('Huseni',           ARRAY['Husaini'],                        'janya', TRUE),
+('Jaganmohini',      ARRAY[]::TEXT[],                         'janya', TRUE),
+('Janaranjani',      ARRAY[]::TEXT[],                         'janya', TRUE),
+('Jayantashree',     ARRAY['Jayantasri','Jayanthasri'],       'janya', TRUE),
+('Kadanakutoohalam', ARRAY['Kadanakudhuhalam'],               'janya', TRUE),
+('Kalyanavasamtam',  ARRAY['Kalyanavasamtham'],               'janya', TRUE),
+('Kamalaamanohari',  ARRAY['Kamalamannohari'],                'janya', TRUE),
+('Kanada',           ARRAY['Kannada'],                        'janya', TRUE),
+('Kannadagowla',     ARRAY[]::TEXT[],                         'janya', TRUE),
+('Karnaranjani',     ARRAY[]::TEXT[],                         'janya', TRUE),
+('Kedaragowla',      ARRAY['Kedharagowla'],                   'janya', TRUE),
+('Kedaram',          ARRAY[]::TEXT[],                         'janya', TRUE),
+('Kuntalavarali',    ARRAY['Kunthalavarali'],                 'janya', TRUE),
+('Lalita',           ARRAY[]::TEXT[],                         'janya', TRUE),
+('Madhyamavati',     ARRAY['Madhyamavathi'],                  'janya', TRUE),
+('Malayamarutam',    ARRAY['Malayamarutham'],                 'janya', TRUE),
+('Mohanakalyani',    ARRAY[]::TEXT[],                         'janya', TRUE),
+('Mohanam',          ARRAY['Mohana'],                         'janya', TRUE),
+('Mukhari',          ARRAY[]::TEXT[],                         'janya', TRUE),
+('Nalinakanti',      ARRAY['Nalinakanthi'],                   'janya', TRUE),
+('Nattaikuranji',    ARRAY['Nattaikurinji'],                  'janya', TRUE),
+('Navarasakannada',  ARRAY[]::TEXT[],                         'janya', TRUE),
+('Paras',            ARRAY['Paraas'],                         'janya', TRUE),
+('Poorvikalyani',    ARRAY['Purvi Kalyani'],                  'janya', TRUE),
+('Ranjani',          ARRAY[]::TEXT[],                         'janya', TRUE),
+('Reetigowla',       ARRAY['Reeti Gowla'],                    'janya', TRUE),
+('Saranga',          ARRAY[]::TEXT[],                         'janya', TRUE),
+('Sarasvati',        ARRAY['Saraswati'],                      'janya', TRUE),
+('Saveri',           ARRAY[]::TEXT[],                         'janya', TRUE),
+('Shreeranjani',     ARRAY['Sree Ranjani','Sri Ranjani'],     'janya', TRUE),
+('Shuddhadhanyasi',  ARRAY['Suddha Dhanyasi'],                'janya', TRUE),
+('Sindhubhairavi',   ARRAY['Sindhu Bhairavi'],                'janya', TRUE),
+('Sowrashthra',      ARRAY['Saurashtra','Sowrashtram'],       'janya', TRUE),
+('Sunadavinodini',   ARRAY[]::TEXT[],                         'janya', TRUE),
+('Surati',           ARRAY[]::TEXT[],                         'janya', TRUE),
+('Todi',             ARRAY[]::TEXT[],                         'janya', TRUE),
+('Valachi',          ARRAY['Valaji'],                         'janya', TRUE),
+('Vasanta',          ARRAY['Vasantha'],                       'janya', TRUE),
+('Yamunakalyani',    ARRAY['Yamuna Kalyani','Yaman Kalyani'], 'janya', TRUE),
+('Anandabhairavi',   ARRAY[]::TEXT[],                         'janya', TRUE),
+('Begada',           ARRAY[]::TEXT[],                         'janya', TRUE),
+('Bhairavi',         ARRAY[]::TEXT[],                         'janya', TRUE),
+('Kalyani',          ARRAY[]::TEXT[],                         'janya', TRUE),
+('Kambhoji',         ARRAY['Khambhoji'],                      'janya', TRUE),
+('Nattai',           ARRAY[]::TEXT[],                         'janya', TRUE),
+('Pantuvarali',      ARRAY['Purvi Kalyani'],                  'janya', TRUE),
+('Varali',           ARRAY[]::TEXT[],                         'janya', TRUE);
 
--- Also mark some Melakartas that are commonly used as concert ragas
+-- Mark commonly-used Melakartas as popular too
 UPDATE ragas SET is_popular = TRUE WHERE name IN (
   'Kharaharapriya','Mayamalavagowla','Hanumatodi','Harikambhodhi',
   'Mechakalyani','Natabhairavi','Dheerashankarabharanam','Charukeshi',
@@ -168,68 +177,66 @@ UPDATE ragas SET is_popular = TRUE WHERE name IN (
 );
 
 -- ============================================================
--- ADD MISSING ARTISTS FROM APPENDIX C (teacher's book)
--- These are the definitive "suggested listening" artists
--- All are historical legends, most no longer alive
+-- ADD COLUMNS TO ARTISTS TABLE
 -- ============================================================
-
--- Mark all existing artists as is_active based on whether they're in the book
--- We keep them but add the book_recommended flag
 ALTER TABLE artists ADD COLUMN IF NOT EXISTS book_recommended BOOLEAN DEFAULT FALSE;
-ALTER TABLE artists ADD COLUMN IF NOT EXISTS category TEXT;  -- e.g. 'legend', 'active', 'ensemble'
+ALTER TABLE artists ADD COLUMN IF NOT EXISTS category TEXT;
 
--- Update existing artists that match the book list
+-- Mark existing artists from the book as book_recommended
 UPDATE artists SET book_recommended = TRUE WHERE name IN (
   'M.S. Subbulakshmi', 'L. Subramaniam', 'Lalgudi Jayaraman',
   'M.S. Gopalakrishnan', 'N. Ramani', 'Sikkil Sisters'
 );
 
--- ── VOCAL LEGENDS (Appendix C) ────────────────────────────────
-
-INSERT INTO artists (name, artist_type, tags, book_recommended, category, is_active, verified) VALUES
-('Ariyakudi Ramanuja Iyengar',    'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
-('Maharajapuram Vishwanatha Iyer','vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
-('Musiri Subramania Iyer',        'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
-('Semmangudi Srinivasa Iyer',     'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
-('G N Balasubramaniam',           'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
-('Madurai Mani Iyer',             'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
-('Alathur Brothers',              'vocalist', ARRAY['carnatic','classical','legend','vocal','duo'], TRUE, 'legend', TRUE, TRUE),
-('T Brinda',                      'vocalist', ARRAY['carnatic','classical','legend','vocal','female'], TRUE, 'legend', TRUE, TRUE),
-('D K Pattammal',                 'vocalist', ARRAY['carnatic','classical','legend','vocal','female'], TRUE, 'legend', TRUE, TRUE),
-('M L Vasantakumari',             'vocalist', ARRAY['carnatic','classical','legend','vocal','female'], TRUE, 'legend', TRUE, TRUE),
-('Ramnad Krishnan',               'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
-('Palghat K V Narayanaswamy',     'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
-('M Balamuralikrishna',           'vocalist', ARRAY['carnatic','classical','legend','vocal','composer'], TRUE, 'legend', TRUE, TRUE),
-('M D Ramanathan',                'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
-('T N Seshagopalan',              'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
-('T V Sankaranarayanan',          'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
-('Voleti Venkateshwarulu',        'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
-('Nedunuri Krishnamurthy',        'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
-('R K Srikantan',                 'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE)
-
-ON CONFLICT (youtube_channel_id) DO NOTHING;
-
--- ── VIOLIN LEGENDS (Appendix C) ───────────────────────────────
-
-INSERT INTO artists (name, artist_type, instrument, tags, book_recommended, category, is_active, verified) VALUES
-('Dwaram Venkataswami Naidu', 'instrumentalist', 'violin', ARRAY['carnatic','classical','legend','violin'], TRUE, 'legend', TRUE, TRUE),
-('Mysore Chowdaiah',          'instrumentalist', 'violin', ARRAY['carnatic','classical','legend','violin'], TRUE, 'legend', TRUE, TRUE),
-('T N Krishnan',              'instrumentalist', 'violin', ARRAY['carnatic','classical','legend','violin'], TRUE, 'legend', TRUE, TRUE),
-('L Shankar',                 'instrumentalist', 'violin', ARRAY['carnatic','classical','legend','violin','fusion'], TRUE, 'legend', TRUE, TRUE),
-('M Chandrasekaran',          'instrumentalist', 'violin', ARRAY['carnatic','classical','violin'], TRUE, 'legend', TRUE, FALSE)
-
-ON CONFLICT (youtube_channel_id) DO NOTHING;
-
--- ── FLUTE LEGENDS (Appendix C) ────────────────────────────────
-
-INSERT INTO artists (name, artist_type, instrument, tags, book_recommended, category, is_active, verified) VALUES
-('K S Gopalakrishnan', 'instrumentalist', 'flute', ARRAY['carnatic','classical','legend','flute'], TRUE, 'legend', TRUE, TRUE),
-('T R Mahalingam',     'instrumentalist', 'flute', ARRAY['carnatic','classical','legend','flute'], TRUE, 'legend', TRUE, TRUE)
-
-ON CONFLICT (youtube_channel_id) DO NOTHING;
+-- ============================================================
+-- VOCAL LEGENDS FROM APPENDIX C
+-- ============================================================
+INSERT INTO artists (name, artist_type, tags, book_recommended, category, is_active, verified)
+VALUES
+  ('Ariyakudi Ramanuja Iyengar',     'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
+  ('Maharajapuram Vishwanatha Iyer', 'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
+  ('Musiri Subramania Iyer',         'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
+  ('Semmangudi Srinivasa Iyer',      'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
+  ('G N Balasubramaniam',            'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
+  ('Madurai Mani Iyer',              'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
+  ('Alathur Brothers',               'vocalist', ARRAY['carnatic','classical','legend','vocal','duo'], TRUE, 'legend', TRUE, TRUE),
+  ('T Brinda',                       'vocalist', ARRAY['carnatic','classical','legend','vocal','female'], TRUE, 'legend', TRUE, TRUE),
+  ('D K Pattammal',                  'vocalist', ARRAY['carnatic','classical','legend','vocal','female'], TRUE, 'legend', TRUE, TRUE),
+  ('M L Vasantakumari',              'vocalist', ARRAY['carnatic','classical','legend','vocal','female'], TRUE, 'legend', TRUE, TRUE),
+  ('Ramnad Krishnan',                'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
+  ('Palghat K V Narayanaswamy',      'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
+  ('M Balamuralikrishna',            'vocalist', ARRAY['carnatic','classical','legend','vocal','composer'], TRUE, 'legend', TRUE, TRUE),
+  ('M D Ramanathan',                 'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
+  ('T N Seshagopalan',               'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
+  ('T V Sankaranarayanan',           'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
+  ('Voleti Venkateshwarulu',         'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
+  ('Nedunuri Krishnamurthy',         'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE),
+  ('R K Srikantan',                  'vocalist', ARRAY['carnatic','classical','legend','vocal'], TRUE, 'legend', TRUE, TRUE)
+ON CONFLICT DO NOTHING;
 
 -- ============================================================
--- ADD raga_id LINK to videos table for proper relational lookup
+-- VIOLIN LEGENDS FROM APPENDIX C
+-- ============================================================
+INSERT INTO artists (name, artist_type, instrument, tags, book_recommended, category, is_active, verified)
+VALUES
+  ('Dwaram Venkataswami Naidu', 'instrumentalist', 'violin', ARRAY['carnatic','classical','legend','violin'], TRUE, 'legend', TRUE, TRUE),
+  ('Mysore Chowdaiah',          'instrumentalist', 'violin', ARRAY['carnatic','classical','legend','violin'], TRUE, 'legend', TRUE, TRUE),
+  ('T N Krishnan',              'instrumentalist', 'violin', ARRAY['carnatic','classical','legend','violin'], TRUE, 'legend', TRUE, TRUE),
+  ('L Shankar',                 'instrumentalist', 'violin', ARRAY['carnatic','classical','legend','violin','fusion'], TRUE, 'legend', TRUE, TRUE),
+  ('M Chandrasekaran',          'instrumentalist', 'violin', ARRAY['carnatic','classical','violin'], TRUE, 'legend', TRUE, FALSE)
+ON CONFLICT DO NOTHING;
+
+-- ============================================================
+-- FLUTE LEGENDS FROM APPENDIX C
+-- ============================================================
+INSERT INTO artists (name, artist_type, instrument, tags, book_recommended, category, is_active, verified)
+VALUES
+  ('K S Gopalakrishnan', 'instrumentalist', 'flute', ARRAY['carnatic','classical','legend','flute'], TRUE, 'legend', TRUE, TRUE),
+  ('T R Mahalingam',     'instrumentalist', 'flute', ARRAY['carnatic','classical','legend','flute'], TRUE, 'legend', TRUE, TRUE)
+ON CONFLICT DO NOTHING;
+
+-- ============================================================
+-- ADD raga_id LINK to videos table
 -- ============================================================
 ALTER TABLE videos ADD COLUMN IF NOT EXISTS raga_id UUID REFERENCES ragas(id) ON DELETE SET NULL;
 CREATE INDEX IF NOT EXISTS idx_videos_raga_id ON videos(raga_id);
