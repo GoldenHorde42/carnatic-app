@@ -77,9 +77,86 @@ interface SearchIntent {
   keywords:    string[]
 }
 
+// ── Deterministic pre-parser: handles known artists & mood keywords without LLM ───────
+// Much faster and 100% reliable for common queries. Groq only runs for complex ones.
+
+const KNOWN_ARTIST_PATTERNS: [string, string][] = [
+  ['ranjani gayatri',     'Ranjani & Gayatri'],
+  ['ranjani and gayatri', 'Ranjani & Gayatri'],
+  ['bombay jayashri',     'Bombay Jayashri'],
+  ['sanjay subrahmanyan', 'Sanjay Subrahmanyan'],
+  ['sanjay subrahmanyam', 'Sanjay Subrahmanyan'],
+  ['tm krishna',          'T.M. Krishna'],
+  ['t.m. krishna',        'T.M. Krishna'],
+  ['t m krishna',         'T.M. Krishna'],
+  ['unnikrishnan',        'Unnikrishnan'],
+  ['p unnikrishnan',      'Unnikrishnan'],
+  ['ms subbulakshmi',     'M.S. Subbulakshmi'],
+  ['m.s. subbulakshmi',   'M.S. Subbulakshmi'],
+  ['m.s subbulakshmi',    'M.S. Subbulakshmi'],
+  ['sudha raghunathan',   'Sudha Raghunathan'],
+  ['nithyashree mahadevan', 'Nithyashree Mahadevan'],
+  ['nithyashree',         'Nithyashree Mahadevan'],
+  ['aruna sairam',        'Aruna Sairam'],
+  ['vijay siva',          'Vijay Siva'],
+  ['abhishek raghuram',   'Abhishek Raghuram'],
+  ['ambi subramaniam',    'Ambi Subramaniam'],
+  ['l subramaniam',       'L. Subramaniam'],
+  ['dr l subramaniam',    'L. Subramaniam'],
+  ['lalgudi jayaraman',   'Lalgudi Jayaraman'],
+  ['r.k. srikantan',      'R.K. Srikantan'],
+  ['rk srikantan',        'R.K. Srikantan'],
+  ['m.s. gopalakrishnan', 'M.S. Gopalakrishnan'],
+  ['ms gopalakrishnan',   'M.S. Gopalakrishnan'],
+  ['sowmya',              'Sowmya'],
+  ['neyveli santhanagopalan', 'Neyveli Santhanagopalan'],
+  ['music academy',       'Music Academy Chennai'],
+  ['kartik fine arts',    'Kartik Fine Arts'],
+]
+
+function tryQuickParse(query: string): SearchIntent | null {
+  const q = query.toLowerCase().trim()
+
+  // 1. Mood keywords — check BEFORE artist names so "calm aruna sairam" still works
+  for (const [mood, ragas] of Object.entries(MOOD_RAGA_MAP)) {
+    // Match the mood word as a whole word (surrounded by space/punctuation/start/end)
+    const regex = new RegExp(`(^|\\s|,)${mood}(\\s|,|$|\\.|!)`, 'i')
+    if (regex.test(q)) {
+      // Check if there's also an artist in the query
+      for (const [pattern, canonicalName] of KNOWN_ARTIST_PATTERNS) {
+        if (q.includes(pattern)) {
+          return { raga: null, ragas, tala: null, artist: canonicalName,
+                   video_type: null, instrument: null, composer: null,
+                   difficulty: null, mood, keywords: [] }
+        }
+      }
+      return { raga: null, ragas, tala: null, artist: null,
+               video_type: null, instrument: null, composer: null,
+               difficulty: null, mood, keywords: [] }
+    }
+  }
+
+  // 2. Known artist names (exact lowercase substring)
+  for (const [pattern, canonicalName] of KNOWN_ARTIST_PATTERNS) {
+    if (q.includes(pattern)) {
+      return { raga: null, ragas: [], tala: null, artist: canonicalName,
+               video_type: null, instrument: null, composer: null,
+               difficulty: null, mood: null, keywords: [] }
+    }
+  }
+
+  return null // Complex query — let Groq handle it
+}
+
 // ── Groq: extract structured intent ──────────────────────────────────────────────────
 
 async function extractSearchIntent(query: string): Promise<SearchIntent> {
+  // Fast path: deterministic pre-parser for known artists & moods
+  const quick = tryQuickParse(query)
+  if (quick) {
+    console.log('Pre-parser hit:', JSON.stringify(quick))
+    return quick
+  }
   const systemPrompt = `You are a search intent parser for a Carnatic classical music app.
 Extract structured search intent and return ONLY valid JSON. No explanation.
 
@@ -113,6 +190,18 @@ TALA RULES:
 ARTIST RULES:
 - Normalize to proper case. If first name only and unambiguous, expand:
   "sanjay" → "Sanjay Subrahmanyan", "ms" or "m.s." → "M.S. Subbulakshmi"
+- Known Carnatic artists — ALWAYS treat these as artist names, never as raga names:
+  "ranjani gayatri" / "ranjani and gayatri" → artist: "Ranjani & Gayatri"  (sister duo, NOT the raga Ranjani)
+  "bombay jayashri" / "jayashri" → artist: "Bombay Jayashri"
+  "vijay siva" → artist: "Vijay Siva"
+  "sudha raghunathan" / "sudha" → artist: "Sudha Raghunathan"
+  "nithyashree" → artist: "Nithyashree Mahadevan"
+  "aruna sairam" / "aruna" → artist: "Aruna Sairam"
+  "unnikrishnan" → artist: "Unnikrishnan"
+  "tm krishna" / "t.m. krishna" → artist: "T.M. Krishna"
+  "ambi subramaniam" / "ambi" → artist: "Ambi Subramaniam"
+  "l subramaniam" → artist: "L. Subramaniam"
+- If a word could be BOTH a raga AND an artist (e.g. "Ranjani", "Saveri", "Vasanta"), and it appears with another person’s name, prefer artist.
 
 VIDEO TYPE RULES:
 - "concert" / "performance" / "kutcheri" / "live" → "concert"
@@ -125,44 +214,59 @@ Query: "calm morning music" → {"raga":null,"ragas":["Bowli","Saveri","Shankara
 Query: "sanjay subrahmanyan kalyani concert" → {"raga":"Kalyani","ragas":[],"tala":null,"artist":"Sanjay Subrahmanyan","video_type":"concert","instrument":null,"composer":null,"difficulty":null,"mood":null,"keywords":[]}
 Query: "beginner violin tutorial adi tala" → {"raga":null,"ragas":[],"tala":"Adi","artist":null,"video_type":"tutorial","instrument":"violin","composer":null,"difficulty":"beginner","mood":null,"keywords":[]}
 Query: "tyagaraja krithi in todi" → {"raga":"Todi","ragas":[],"tala":null,"artist":null,"video_type":"kriti","instrument":null,"composer":"Tyagaraja","difficulty":null,"mood":null,"keywords":[]}
+Query: "ranjani gayatri" → {"raga":null,"ragas":[],"tala":null,"artist":"Ranjani & Gayatri","video_type":null,"instrument":null,"composer":null,"difficulty":null,"mood":null,"keywords":[]}
+Query: "bombay jayashri concert" → {"raga":null,"ragas":[],"tala":null,"artist":"Bombay Jayashri","video_type":"concert","instrument":null,"composer":null,"difficulty":null,"mood":null,"keywords":[]}
 Query: "something peaceful for studying" → {"raga":null,"ragas":["Sahana","Hamsadhvani","Kalyani"],"tala":null,"artist":null,"video_type":null,"instrument":null,"composer":null,"difficulty":null,"mood":"peaceful","keywords":["studying"]}`
 
-  try {
-    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
-        'Content-Type':  'application/json',
-      },
-      body: JSON.stringify({
-        model:           'llama-3.1-8b-instant',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user',   content: `Query: "${query}"` },
-        ],
-        temperature:     0.1,
-        max_tokens:      300,
-        response_format: { type: 'json_object' },
-      }),
-    })
+  // Retry up to 2 times with 600 ms gap — Groq 8B is fast but occasionally times out
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      const controller = new AbortController()
+      const timeout = setTimeout(() => controller.abort(), 5000) // 5 s per attempt
 
-    if (!res.ok) {
-      console.error('Groq error:', res.status)
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {
+          'Authorization': `Bearer ${GROQ_API_KEY}`,
+          'Content-Type':  'application/json',
+        },
+        body: JSON.stringify({
+          model:           'llama-3.3-70b-versatile',   // upgraded to 70B on dev account
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user',   content: `Query: "${query}"` },
+          ],
+          temperature:     0.1,
+          max_tokens:      300,
+          response_format: { type: 'json_object' },
+        }),
+      })
+      clearTimeout(timeout)
+
+      if (!res.ok) {
+        console.error(`Groq attempt ${attempt} error:`, res.status)
+        if (attempt < 2) { await new Promise(r => setTimeout(r, 600)); continue }
+        return fallbackIntent(query)
+      }
+
+      const data    = await res.json()
+      const content = data.choices?.[0]?.message?.content
+      if (!content) {
+        if (attempt < 2) { await new Promise(r => setTimeout(r, 600)); continue }
+        return fallbackIntent(query)
+      }
+
+      const intent = JSON.parse(content) as SearchIntent
+      if (!intent.ragas) intent.ragas = []
+      return intent
+    } catch (err) {
+      console.error(`Groq attempt ${attempt} error:`, err)
+      if (attempt < 2) { await new Promise(r => setTimeout(r, 600)); continue }
       return fallbackIntent(query)
     }
-
-    const data    = await res.json()
-    const content = data.choices?.[0]?.message?.content
-    if (!content) return fallbackIntent(query)
-
-    const intent = JSON.parse(content) as SearchIntent
-    // Ensure ragas array is always present
-    if (!intent.ragas) intent.ragas = []
-    return intent
-  } catch (err) {
-    console.error('Groq parse error:', err)
-    return fallbackIntent(query)
   }
+  return fallbackIntent(query)
 }
 
 function fallbackIntent(query: string): SearchIntent {
@@ -205,12 +309,12 @@ async function queryVideos(
     query = query.ilike('tala', `%${intent.tala}%`)
   }
 
-  // ── Video type ──
-  if (intent.video_type) {
-    query = query.eq('video_type', intent.video_type)
-  }
+  // NOTE: video_type filter intentionally omitted — most videos have video_type=null
+  // so filtering by it eliminates valid results. Add back once we have richer metadata.
 
   // ── Artist name ──
+  // Use plain .ilike() — NOT .or() — because PostgREST's or() filter string
+  // treats '.' as a syntax separator, silently breaking names like "T.M. Krishna".
   if (intent.artist) {
     query = query.ilike('artist_name', `%${intent.artist}%`)
   }
@@ -220,9 +324,12 @@ async function queryVideos(
     query = query.ilike('composer', `%${intent.composer}%`)
   }
 
-  // ── Keyword fallback ──
+  // ── Keyword fallback: search each keyword individually against title + artist_name ──
   if (intent.keywords.length > 0 && !intent.raga && intent.ragas.length === 0 && !intent.artist) {
-    query = query.ilike('title', `%${intent.keywords.join(' ')}%`)
+    // Use the most-specific keyword (longest word) to avoid overly broad matches
+    const kw = intent.keywords.reduce((a, b) => (b.length > a.length ? b : a), intent.keywords[0])
+    const safe = kw.replace(/%/g, '\\%').replace(/_/g, '\\_')
+    query = query.or(`title.ilike.%${safe}%,artist_name.ilike.%${safe}%`)
   }
 
   // ── Instrument: join through artists ──
@@ -237,6 +344,8 @@ async function queryVideos(
   }
 
   query = query
+    // Sort by popularity first so best content surfaces on top
+    .order('view_count', { ascending: false, nullsFirst: false })
     .order('published_at', { ascending: false })
     .range(offset, offset + limit - 1)
 
@@ -277,14 +386,71 @@ Deno.serve(async (req: Request) => {
 
     let { videos, total } = await queryVideos(intent, limit, offset, supabase)
 
-    // Fallback: if no structured results, try plain keyword search
-    if (videos.length === 0 && (intent.raga || intent.ragas.length || intent.artist || intent.tala)) {
-      console.log('No structured results, falling back to keyword search')
-      const fallback = fallbackIntent(query)
-      const fb = await queryVideos(fallback, limit, offset, supabase)
-      videos = fb.videos
-      total  = fb.total
+    // Fallback: if no structured results, try a broad OR search across title + artist_name
+    if (videos.length === 0) {
+      console.log('No structured results, running broad fallback search')
+
+      // Special case: mood search → try matching raga names in video TITLES
+      // (most videos don't have raga column tagged, but many have raga names in title)
+      if (intent.mood && intent.ragas.length > 0) {
+        console.log('Mood fallback: searching raga names in titles')
+        // Build OR filter: title ILIKE '%Bhairavi%' OR title ILIKE '%Sindhubhairavi%' etc.
+        const ragaFilter = intent.ragas
+          .map(r => `title.ilike.%${r}%`)
+          .join(',')
+        const { data: moodData, error: moodErr, count: moodCount } = await supabase
+          .from('videos')
+          .select(`
+            id, youtube_video_id, title, thumbnail_url,
+            channel_name, published_at, duration_seconds, view_count,
+            raga, tala, composer, artist_name, video_type, artist_id,
+            artists ( name, instrument, book_recommended )
+          `, { count: 'exact' })
+          .eq('is_visible', true)
+          .or(ragaFilter)
+          .order('view_count', { ascending: false, nullsFirst: false })
+          .range(offset, offset + limit - 1)
+        if (!moodErr && moodData && moodData.length > 0) {
+          videos = moodData
+          total  = moodCount || 0
+        }
+      }
+
+      // If still 0 results: broad keyword/term search across title + artist_name
+      if (videos.length === 0) {
+        // Collect all meaningful terms: artist, raga, composer, keywords
+        const terms = [
+          ...(intent.artist   ? intent.artist.split(/\s+/)   : []),
+          ...(intent.raga     ? [intent.raga]                : []),
+          ...(intent.ragas    || []),
+          ...(intent.composer ? intent.composer.split(/\s+/) : []),
+          ...intent.keywords,
+        ].filter(w => w.length > 2) // skip very short words
+
+      if (terms.length > 0) {
+        // Use the longest/most-specific term for the broad search
+        const bestTerm = terms.reduce((a, b) => (b.length > a.length ? b : a), terms[0])
+        const safe = bestTerm.replace(/%/g, '\\%').replace(/_/g, '\\_')
+        const { data: fbData, error: fbError, count: fbCount } = await supabase
+          .from('videos')
+          .select(`
+            id, youtube_video_id, title, thumbnail_url,
+            channel_name, published_at, duration_seconds, view_count,
+            raga, tala, composer, artist_name, video_type, artist_id,
+            artists ( name, instrument, book_recommended )
+          `, { count: 'exact' })
+          .eq('is_visible', true)
+          .or(`title.ilike.%${safe}%,artist_name.ilike.%${safe}%`)
+          .order('view_count', { ascending: false, nullsFirst: false })
+          .order('published_at', { ascending: false })
+          .range(offset, offset + limit - 1)
+        if (!fbError) {
+          videos = fbData || []
+          total  = fbCount || 0
+        }
+      }
     }
+    } // end outer if (videos.length === 0)
 
     // Build a human-readable description of what we searched for
     const searchSummary = buildSummary(intent)
