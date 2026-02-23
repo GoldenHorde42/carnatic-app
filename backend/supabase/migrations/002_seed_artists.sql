@@ -26,7 +26,6 @@ INSERT INTO artists (name, youtube_channel_id, channel_name, artist_type, instru
 ('Vijay Siva',               'UCBgETFqDqdz_vv6yvmn4Xvg', 'Vijay Siva',              'vocalist',        NULL,         ARRAY['carnatic', 'classical', 'concert'],                    FALSE),
 ('Maharajapuram Santhanam',  NULL,                        'Maharajapuram Santhanam', 'vocalist',        NULL,         ARRAY['carnatic', 'classical', 'legend'],                    FALSE),
 ('K.J. Yesudas',             'UCsRLc3oa_ctOA4lkJRRW8nQ', 'KJ Yesudas',              'vocalist',        NULL,         ARRAY['carnatic', 'classical', 'devotional', 'film'],        TRUE),
-('P. Unnikrishnan',          'UCHoAzBXdmMzRZqL6_5Tl9Ug', 'P Unnikrishnan',          'vocalist',        NULL,         ARRAY['carnatic', 'classical'],                              FALSE),
 ('Sikkil Gurucharan',        NULL,                        'Sikkil Gurucharan',       'vocalist',        NULL,         ARRAY['carnatic', 'classical', 'flute', 'concert'],          FALSE),
 ('Abhishek Raghuram',        'UC5g5jdZR_YkRqB_q3ASS9Vg', 'Abhishek Raghuram',       'vocalist',        NULL,         ARRAY['carnatic', 'classical', 'young', 'concert'],          TRUE),
 ('Sriram Parthasarathy',     NULL,                        'Sriram Parthasarathy',    'vocalist',        NULL,         ARRAY['carnatic', 'classical'],                              FALSE),
