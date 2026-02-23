@@ -52,7 +52,7 @@ export default function PlayerScreen() {
           height={PLAYER_HEIGHT}
           videoId={videoId}
           play={playing}
-          onChangeState={state => {
+          onChangeState={(state: string) => {
             if (state === 'ended') setPlaying(false)
           }}
         />
