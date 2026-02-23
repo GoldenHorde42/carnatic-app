@@ -1,0 +1,17 @@
+{
+  "name": "carnatic-app-backend",
+  "version": "1.0.0",
+  "description": "Backend scripts and DB migrations for Carnatic App",
+  "scripts": {
+    "fetch": "npx ts-node --esm scripts/fetch-videos.ts",
+    "fetch:full": "DAYS_BACK=365 npx ts-node --esm scripts/fetch-videos.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.43.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}
