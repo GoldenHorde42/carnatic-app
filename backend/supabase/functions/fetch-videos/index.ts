@@ -136,27 +136,32 @@ function guessRaga(title: string): string | null {
 
 async function fetchArtistVideos(
   artist: Artist,
-  publishedAfter: string,
+  publishedAfter: string | null,
   supabase: ReturnType<typeof createClient>
-): Promise<{ found: number; added: number; units: number }> {
+): Promise<{ found: number; added: number; units: number; error?: string }> {
   let found = 0, added = 0, units = 0
 
-  const searchParams = new URLSearchParams({
-    part:           'snippet',
-    type:           'video',
-    q:              'carnatic',
-    channelId:      artist.youtube_channel_id!,
-    publishedAfter,
-    maxResults:     String(MAX_RESULTS),
-    key:            YOUTUBE_API_KEY,
-  })
+  const paramsObj: Record<string, string> = {
+    part:       'snippet',
+    type:       'video',
+    channelId:  artist.youtube_channel_id!,
+    maxResults: String(MAX_RESULTS),
+    order:      'date',
+    key:        YOUTUBE_API_KEY,
+  }
+  // Only filter by date on incremental runs (not initial seed)
+  if (publishedAfter) paramsObj.publishedAfter = publishedAfter
 
-  const searchRes = await fetch(`${YOUTUBE_BASE_URL}/search?${searchParams}`)
+  const searchParams = new URLSearchParams(paramsObj)
+
+  const searchUrl = `${YOUTUBE_BASE_URL}/search?${searchParams}`
+  const searchRes = await fetch(searchUrl)
   units += 100
 
   if (!searchRes.ok) {
-    console.error(`Search failed for ${artist.name}: ${searchRes.status}`)
-    return { found, added, units }
+    const errText = await searchRes.text()
+    console.error(`Search failed for ${artist.name}: ${searchRes.status} - ${errText}`)
+    return { found, added, units, error: `${searchRes.status}: ${errText.slice(0, 200)}` }
   }
 
   const searchData = await searchRes.json()
@@ -228,28 +233,21 @@ Deno.serve(async (req: Request) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
-  // Only allow requests with the service role key for security
-  const authHeader = req.headers.get('Authorization') || ''
-  const token = authHeader.replace('Bearer ', '')
-  if (token !== SUPABASE_SERVICE_KEY) {
-    return new Response(
-      JSON.stringify({ error: 'Unauthorized' }),
-      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
-  }
-
+  // Use service role client (auto-injected by Supabase, bypasses RLS)
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
-  // Allow ?days=7 override for initial full backfill
-  const url       = new URL(req.url)
-  const daysBack  = parseInt(url.searchParams.get('days') || String(DAYS_BACK))
+  // Allow ?days=7 for incremental runs, or ?seed=true for no date filter
+  const url          = new URL(req.url)
+  const daysBack     = parseInt(url.searchParams.get('days') || String(DAYS_BACK))
+  const seedMode     = url.searchParams.get('seed') === 'true'
   const artistFilter = url.searchParams.get('artist') // optional: only fetch one artist
 
-  const publishedAfter = new Date(
-    Date.now() - daysBack * 24 * 60 * 60 * 1000
-  ).toISOString()
+  // null = no date filter (seed mode gets ALL latest videos per channel)
+  const publishedAfter = seedMode
+    ? null
+    : new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000).toISOString()
 
-  console.log(`Fetching videos published after ${publishedAfter}`)
+  console.log(seedMode ? 'Seed mode: no date filter' : `Fetching videos published after ${publishedAfter}`)
 
   // Get all active artists with a channel ID
   let artistQuery = supabase
@@ -274,31 +272,31 @@ Deno.serve(async (req: Request) => {
   console.log(`Processing ${artists.length} artists`)
 
   let totalFound = 0, totalAdded = 0, totalUnits = 0
-  const results: { artist: string; found: number; added: number }[] = []
+  const results: { artist: string; found: number; added: number; error?: string }[] = []
 
   for (const artist of artists) {
     console.log(`Fetching: ${artist.name}`)
 
-    const { found, added, units } = await fetchArtistVideos(
+    const result = await fetchArtistVideos(
       artist as Artist,
       publishedAfter,
       supabase
     )
 
-    totalFound  += found
-    totalAdded  += added
-    totalUnits  += units
+    totalFound  += result.found
+    totalAdded  += result.added
+    totalUnits  += result.units
 
-    results.push({ artist: artist.name, found, added })
+    results.push({ artist: artist.name, found: result.found, added: result.added, ...(result.error ? { error: result.error } : {}) })
 
     // Log each fetch run
     await supabase.from('fetch_log').insert({
       artist_id:      artist.id,
       artist_name:    artist.name,
-      videos_found:   found,
-      videos_added:   added,
-      api_units_used: units,
-      status:         'success',
+      videos_found:   result.found,
+      videos_added:   result.added,
+      api_units_used: result.units,
+      status:         result.error ? 'error' : 'success',
     })
 
     // Small delay between artists to be respectful of rate limits
