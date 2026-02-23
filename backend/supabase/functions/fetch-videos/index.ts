@@ -30,17 +30,26 @@ const DAYS_BACK   = 3
 const MAX_RESULTS = 25
 
 // ── Trusted sabha / label channels used for Tier-2 name search ────────────────────────
-// These channels regularly post concerts by many different artists
-const TRUSTED_CHANNEL_IDS = [
+// SABHAS: post concerts by many different artists
+const SABHA_CHANNEL_IDS = [
   'UCKmE9i2iW0KaqgSxVFYmZUw',  // The Music Academy Madras
   'UCfDNeYjoqsfOhU-nX_g8GoA',  // Brahma Gana Sabha
   'UCE5dTxYYk-zRi7i8q7F9OZg',  // Narada Gana Sabha
   'UCLEaUPYUV3qZlHhOM-44R1Q',  // Kartik Fine Arts
   'UCmZlcYYHVjF-0EZ0fj_-B6g',  // Carnatica
-  'UCdWghuUa0qb1bgt0fdX6i0w',  // Carnatic Classical / Manorama Music
-  'UCOwMXGjxYotFyVdby5i4m1g',  // Sanjay Subrahmanyan (also posts others)
-  'UCPDbU-Q9EIDoc0sbrks7-Lg',  // Abhishek Raghuram
+  'UCdWghuUa0qb1bgt0fdX6i0w',  // Manorama Music (Carnatic section)
 ]
+
+// LABELS: major record labels with classic/archival Carnatic recordings
+// Critical for deceased artists (M.S. Subbulakshmi, Lalgudi, GNB, etc.)
+const LABEL_CHANNEL_IDS = [
+  'UCMexzFKFfRqeVtSKQ7vxRNA',  // Saregama Music (largest Carnatic archive)
+  'UCx3LGGBiId60_8FEWXV4MKg',  // Sony Music India
+  'UC3MLnJtqc_phABBriLRhtgQ',  // Times Music Spiritual
+  'UCmMUZbaYdNH0bEd1PAlAqsA',  // Carnatic Music (aggregator channel)
+]
+
+const TRUSTED_CHANNEL_IDS = [...SABHA_CHANNEL_IDS, ...LABEL_CHANNEL_IDS]
 
 // ── Types ─────────────────────────────────────────────────────────────────────────────
 
@@ -48,6 +57,9 @@ interface Artist {
   id:                 string
   name:               string
   youtube_channel_id: string | null
+  search_aliases:     string[]
+  is_deceased:        boolean
+  fetch_strategy:     'channel' | 'sabha_search' | 'global_search' | 'skip'
 }
 
 interface YouTubeSnippet {
@@ -313,6 +325,64 @@ async function fetchByNameSearch(
   return { found: totalFound, added: totalAdded, units: totalUnits }
 }
 
+// ── Tier 3: global YouTube search for deceased / archival artists ─────────────────────
+// Used for legends like M.S. Subbulakshmi, Lalgudi Jayaraman, GNB, DKP etc.
+// Searches globally (no channel restriction) using the artist's name + aliases.
+// Strict title-matching ensures we only keep videos actually about the artist.
+
+async function fetchByGlobalSearch(
+  artist: Artist,
+  publishedAfter: string | null,
+  supabase: ReturnType<typeof createClient>
+): Promise<{ found: number; added: number; units: number; error?: string }> {
+  let totalFound = 0, totalAdded = 0, totalUnits = 0
+
+  // Build list of search terms: canonical name + aliases
+  const searchTerms = [artist.name, ...(artist.search_aliases || [])]
+    .slice(0, 3) // cap at 3 to save quota
+
+  for (const term of searchTerms) {
+    const paramsObj: Record<string, string> = {
+      part:       'snippet',
+      type:       'video',
+      q:          `${term} carnatic`,  // add "carnatic" to narrow global search
+      maxResults: '15',
+      order:      'relevance',
+      videoCategoryId: '10',  // Music category
+      key:        YOUTUBE_API_KEY,
+    }
+    if (publishedAfter) paramsObj.publishedAfter = publishedAfter
+
+    const searchRes = await fetch(`${YOUTUBE_BASE_URL}/search?${new URLSearchParams(paramsObj)}`)
+    totalUnits += 101
+
+    if (!searchRes.ok) continue
+
+    const items: YouTubeSearchItem[] = (await searchRes.json()).items || []
+    if (items.length === 0) continue
+
+    // Strict filter: title or description must mention the artist
+    // Use all aliases + canonical name parts
+    const allTerms = [artist.name, ...(artist.search_aliases || [])]
+    const relevant = items.filter(item => {
+      const combined = (item.snippet.title + ' ' + item.snippet.description).toLowerCase()
+      return allTerms.some(t =>
+        t.toLowerCase().split(/[\s.]+/)
+          .filter(p => p.length > 2)
+          .every(part => combined.includes(part))
+      )
+    })
+
+    const added = await upsertVideos(relevant, artist.id, artist.name, supabase)
+    totalFound += relevant.length
+    totalAdded += added
+
+    await new Promise(r => setTimeout(r, 200))
+  }
+
+  return { found: totalFound, added: totalAdded, units: totalUnits }
+}
+
 // ── Main handler ──────────────────────────────────────────────────────────────────────
 
 Deno.serve(async (req: Request) => {
@@ -340,8 +410,9 @@ Deno.serve(async (req: Request) => {
 
   let artistQuery = supabase
     .from('artists')
-    .select('id, name, youtube_channel_id')
+    .select('id, name, youtube_channel_id, search_aliases, is_deceased, fetch_strategy')
     .eq('is_active', true)
+    .neq('fetch_strategy', 'skip')
 
   if (artistFilter) {
     artistQuery = artistQuery.ilike('name', `%${artistFilter}%`)
@@ -356,57 +427,45 @@ Deno.serve(async (req: Request) => {
     )
   }
 
-  const tier1Artists = artists.filter(a => a.youtube_channel_id)
-  const tier2Artists = artists.filter(a => !a.youtube_channel_id)
+  const tier1Artists = artists.filter(a => a.fetch_strategy === 'channel' && a.youtube_channel_id)
+  const tier2Artists = artists.filter(a => a.fetch_strategy === 'sabha_search')
+  const tier3Artists = artists.filter(a => a.fetch_strategy === 'global_search')
 
-  console.log(`Tier 1 (own channel): ${tier1Artists.length}, Tier 2 (name search): ${tier2Artists.length}`)
+  console.log(`T1 (channel): ${tier1Artists.length}, T2 (sabha): ${tier2Artists.length}, T3 (global/deceased): ${tier3Artists.length}`)
 
   let totalFound = 0, totalAdded = 0, totalUnits = 0
   const results: { artist: string; tier: number; found: number; added: number; error?: string }[] = []
 
-  // ── Tier 1 ────
-  for (const artist of tier1Artists) {
-    console.log(`[T1] ${artist.name}`)
-    const result = await fetchByChannel(artist as Artist, publishedAfter, supabase)
+  const runArtist = async (artist: Artist, tier: number, fn: () => Promise<{ found: number; added: number; units: number; error?: string }>) => {
+    const result = await fn()
     totalFound += result.found
     totalAdded += result.added
     totalUnits += result.units
-    results.push({ artist: artist.name, tier: 1, found: result.found, added: result.added, ...(result.error ? { error: result.error } : {}) })
-
+    results.push({ artist: artist.name, tier, found: result.found, added: result.added, ...(result.error ? { error: result.error } : {}) })
     await supabase.from('fetch_log').insert({
-      artist_id:      artist.id,
-      artist_name:    artist.name,
-      videos_found:   result.found,
-      videos_added:   result.added,
-      api_units_used: result.units,
-      status:         result.error ? 'error' : 'success',
+      artist_id: artist.id, artist_name: artist.name,
+      videos_found: result.found, videos_added: result.added,
+      api_units_used: result.units, status: result.error ? 'error' : 'success',
     })
     await new Promise(r => setTimeout(r, 150))
   }
 
-  // ── Tier 2 ────
-  for (const artist of tier2Artists) {
-    console.log(`[T2] ${artist.name}`)
-    const result = await fetchByNameSearch(artist as Artist, publishedAfter, supabase)
-    totalFound += result.found
-    totalAdded += result.added
-    totalUnits += result.units
-    results.push({ artist: artist.name, tier: 2, found: result.found, added: result.added, ...(result.error ? { error: result.error } : {}) })
-
-    await supabase.from('fetch_log').insert({
-      artist_id:      artist.id,
-      artist_name:    artist.name,
-      videos_found:   result.found,
-      videos_added:   result.added,
-      api_units_used: result.units,
-      status:         result.error ? 'error' : 'success',
-    })
-    await new Promise(r => setTimeout(r, 150))
+  for (const a of tier1Artists) {
+    console.log(`[T1] ${a.name}`)
+    await runArtist(a as Artist, 1, () => fetchByChannel(a as Artist, publishedAfter, supabase))
+  }
+  for (const a of tier2Artists) {
+    console.log(`[T2] ${a.name}`)
+    await runArtist(a as Artist, 2, () => fetchByNameSearch(a as Artist, publishedAfter, supabase))
+  }
+  for (const a of tier3Artists) {
+    console.log(`[T3 - deceased/archival] ${a.name}`)
+    await runArtist(a as Artist, 3, () => fetchByGlobalSearch(a as Artist, publishedAfter, supabase))
   }
 
   const summary = {
     success: true,
-    artists: { total: artists.length, tier1: tier1Artists.length, tier2: tier2Artists.length },
+    artists: { total: artists.length, tier1: tier1Artists.length, tier2: tier2Artists.length, tier3: tier3Artists.length },
     totalFound, totalAdded,
     quotaUsed: `${totalUnits} / 10000 daily units`,
     results,
