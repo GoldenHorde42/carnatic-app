@@ -1,6 +1,7 @@
 import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Video, formatDuration, formatViews, timeAgo } from '../lib/api'
+import { YT } from '../lib/theme'
 
 interface Props {
   video:       Video
@@ -13,15 +14,17 @@ export function VideoCard({ video, showArtist = true }: Props) {
   return (
     <TouchableOpacity
       style={styles.card}
-      activeOpacity={0.8}
+      activeOpacity={0.85}
       onPress={() => router.push(`/player/${video.youtube_video_id}`)}
     >
-      {/* Thumbnail */}
-      <View style={styles.thumbContainer}>
+      {/* Full-width 16:9 thumbnail */}
+      <View style={styles.thumbWrap}>
         {video.thumbnail_url ? (
-          <Image source={{ uri: video.thumbnail_url }} style={styles.thumbnail} />
+          <Image source={{ uri: video.thumbnail_url }} style={styles.thumbnail} resizeMode="cover" />
         ) : (
-          <View style={[styles.thumbnail, styles.thumbPlaceholder]} />
+          <View style={[styles.thumbnail, styles.thumbPlaceholder]}>
+            <Text style={styles.thumbPlaceholderText}>♪</Text>
+          </View>
         )}
         {video.duration_seconds ? (
           <View style={styles.durationBadge}>
@@ -30,32 +33,37 @@ export function VideoCard({ video, showArtist = true }: Props) {
         ) : null}
       </View>
 
-      {/* Info */}
+      {/* Info row */}
       <View style={styles.info}>
-        <Text style={styles.title} numberOfLines={2}>{video.title}</Text>
-
-        <View style={styles.meta}>
-          {showArtist && (
-            <Text style={styles.metaText}>{video.artist_name}</Text>
-          )}
-          {video.raga && (
-            <View style={styles.ragaChip}>
-              <Text style={styles.ragaText}>{video.raga}</Text>
-            </View>
-          )}
+        {/* Channel avatar placeholder */}
+        <View style={styles.avatar}>
+          <Text style={styles.avatarText}>
+            {(video.artist_name || '?')[0].toUpperCase()}
+          </Text>
         </View>
 
-        <View style={styles.stats}>
-          {video.view_count ? (
-            <Text style={styles.statText}>{formatViews(video.view_count)}</Text>
-          ) : null}
-          {video.view_count && video.published_at ? (
-            <Text style={styles.statText}> · </Text>
-          ) : null}
-          {video.published_at ? (
-            <Text style={styles.statText}>{timeAgo(video.published_at)}</Text>
-          ) : null}
+        <View style={styles.textBlock}>
+          <Text style={styles.title} numberOfLines={2}>{video.title}</Text>
+
+          <View style={styles.metaRow}>
+            {showArtist && (
+              <Text style={styles.channel}>{video.artist_name}</Text>
+            )}
+            {video.raga ? (
+              <Text style={styles.raga}> · {video.raga}</Text>
+            ) : null}
+          </View>
+
+          <Text style={styles.stats}>
+            {[
+              video.view_count ? formatViews(video.view_count) + ' views' : null,
+              video.published_at ? timeAgo(video.published_at) : null,
+            ].filter(Boolean).join('  ·  ')}
+          </Text>
         </View>
+
+        {/* Three-dot menu placeholder */}
+        <Text style={styles.dots}>⋮</Text>
       </View>
     </TouchableOpacity>
   )
@@ -63,80 +71,102 @@ export function VideoCard({ video, showArtist = true }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection:  'row',
-    marginBottom:   16,
-    paddingHorizontal: 16,
+    marginBottom: 16,
+    backgroundColor: YT.bg,
   },
-  thumbContainer: {
-    position:     'relative',
-    width:        140,
-    height:       80,
-    borderRadius: 8,
-    overflow:     'hidden',
-    backgroundColor: '#1a1a2e',
+
+  // Thumbnail — full width, 16:9 ratio
+  thumbWrap: {
+    width:           '100%',
+    aspectRatio:     16 / 9,
+    backgroundColor: YT.surface,
+    position:        'relative',
   },
   thumbnail: {
     width:  '100%',
     height: '100%',
   },
   thumbPlaceholder: {
-    backgroundColor: '#2a2a3e',
+    backgroundColor: YT.surface,
+    alignItems:      'center',
+    justifyContent:  'center',
+  },
+  thumbPlaceholderText: {
+    color:    YT.textTertiary,
+    fontSize: 40,
   },
   durationBadge: {
     position:        'absolute',
-    bottom:          4,
-    right:           4,
-    backgroundColor: 'rgba(0,0,0,0.8)',
-    borderRadius:    4,
-    paddingHorizontal: 4,
-    paddingVertical: 2,
+    bottom:          6,
+    right:           8,
+    backgroundColor: 'rgba(0,0,0,0.85)',
+    borderRadius:    3,
+    paddingHorizontal: 5,
+    paddingVertical:   2,
   },
   durationText: {
-    color:    '#fff',
-    fontSize: 11,
+    color:      YT.textPrimary,
+    fontSize:   12,
     fontWeight: '600',
   },
+
+  // Info row
   info: {
-    flex:        1,
-    marginLeft:  10,
-    justifyContent: 'space-between',
+    flexDirection: 'row',
+    paddingHorizontal: 12,
+    paddingTop:        10,
+    paddingBottom:     4,
+    gap:               10,
+  },
+  avatar: {
+    width:           36,
+    height:          36,
+    borderRadius:    18,
+    backgroundColor: YT.surface,
+    alignItems:      'center',
+    justifyContent:  'center',
+    flexShrink:      0,
+    marginTop:       2,
+  },
+  avatarText: {
+    color:      YT.textSecondary,
+    fontSize:   15,
+    fontWeight: '700',
+  },
+  textBlock: {
+    flex: 1,
+    gap:  2,
   },
   title: {
-    color:      '#f0e6d3',
-    fontSize:   13,
-    fontWeight: '600',
-    lineHeight: 18,
+    color:      YT.textPrimary,
+    fontSize:   14,
+    fontWeight: '500',
+    lineHeight: 19,
   },
-  meta: {
+  metaRow: {
     flexDirection: 'row',
-    alignItems:    'center',
     flexWrap:      'wrap',
-    marginTop:     4,
-    gap:           6,
+    marginTop:     3,
   },
-  metaText: {
-    color:    '#a89070',
+  channel: {
+    color:    YT.textSecondary,
     fontSize: 12,
   },
-  ragaChip: {
-    backgroundColor: '#2d1b4e',
-    borderRadius:    12,
-    paddingHorizontal: 8,
-    paddingVertical:   2,
-    borderWidth:     1,
-    borderColor:     '#7c3aed44',
-  },
-  ragaText: {
-    color:    '#c084fc',
-    fontSize: 11,
-    fontWeight: '500',
+  raga: {
+    color:    YT.textTertiary,
+    fontSize: 12,
   },
   stats: {
-    flexDirection: 'row',
-    marginTop:     4,
+    color:    YT.textTertiary,
+    fontSize: 12,
+    marginTop: 1,
   },
-  statText: {
-    color:    '#6b7280',
-    fontSize: 11,
+  dots: {
+    color:    YT.textTertiary,
+    fontSize: 20,
+    lineHeight: 20,
+    paddingTop: 2,
+    flexShrink: 0,
   },
 })
+

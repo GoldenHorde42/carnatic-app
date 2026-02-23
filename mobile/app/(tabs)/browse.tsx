@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react'
 import {
-  View, Text, ScrollView, TouchableOpacity,
-  ActivityIndicator, StyleSheet, FlatList,
+  View, Text, TouchableOpacity,
+  ActivityIndicator, StyleSheet, FlatList, ScrollView,
 } from 'react-native'
 import { useRouter } from 'expo-router'
+import { Ionicons } from '@expo/vector-icons'
 import { getArtists, getRagas, Artist } from '../../lib/api'
+import { YT } from '../../lib/theme'
 
 type Tab = 'artists' | 'ragas'
 
@@ -22,84 +24,98 @@ export default function BrowseScreen() {
       .finally(() => setLoading(false))
   }, [])
 
-  const instrumentEmoji = (instrument: string | null) => {
-    if (!instrument) return '🎤'
+  const instrumentIcon = (instrument: string | null): React.ComponentProps<typeof Ionicons>['name'] => {
+    if (!instrument) return 'mic-outline'
     const i = instrument.toLowerCase()
-    if (i.includes('violin'))    return '🎻'
-    if (i.includes('flute'))     return '🎵'
-    if (i.includes('veena'))     return '🪕'
-    if (i.includes('mridangam')) return '🥁'
-    if (i.includes('ghatam'))    return '🏺'
-    if (i.includes('piano'))     return '🎹'
-    return '🎸'
+    if (i.includes('violin') || i.includes('fiddle')) return 'musical-notes-outline'
+    if (i.includes('flute'))                          return 'musical-note-outline'
+    return 'mic-outline'
   }
+
+  const popularRagas  = ragas.filter(r =>  r.is_popular)
+  const otherRagas    = ragas.filter(r => !r.is_popular)
 
   return (
     <View style={styles.container}>
+
+      {/* ── Header ── */}
       <View style={styles.header}>
         <Text style={styles.title}>Browse</Text>
       </View>
 
-      {/* Tabs */}
-      <View style={styles.tabs}>
+      {/* ── Tab switcher ── */}
+      <View style={styles.tabRow}>
         <TouchableOpacity
-          style={[styles.tabBtn, tab === 'artists' && styles.activeTab]}
+          style={[styles.tabPill, tab === 'artists' && styles.tabPillActive]}
           onPress={() => setTab('artists')}
+          activeOpacity={0.8}
         >
-          <Text style={[styles.tabText, tab === 'artists' && styles.activeTabText]}>
+          <Text style={[styles.tabPillText, tab === 'artists' && styles.tabPillTextActive]}>
             Artists
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.tabBtn, tab === 'ragas' && styles.activeTab]}
+          style={[styles.tabPill, tab === 'ragas' && styles.tabPillActive]}
           onPress={() => setTab('ragas')}
+          activeOpacity={0.8}
         >
-          <Text style={[styles.tabText, tab === 'ragas' && styles.activeTabText]}>
+          <Text style={[styles.tabPillText, tab === 'ragas' && styles.tabPillTextActive]}>
             Ragas
           </Text>
         </TouchableOpacity>
       </View>
 
+      {/* ── Divider ── */}
+      <View style={styles.divider} />
+
       {loading ? (
-        <ActivityIndicator color="#c084fc" size="large" style={styles.loader} />
+        <ActivityIndicator color={YT.textSecondary} size="large" style={styles.loader} />
       ) : tab === 'artists' ? (
+
+        /* ── Artist list ── */
         <FlatList
           data={artists}
           keyExtractor={a => a.id}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.list}
           renderItem={({ item: artist }) => (
             <TouchableOpacity
               style={styles.artistRow}
               onPress={() => router.push(`/search?q=${encodeURIComponent(artist.name)}`)}
               activeOpacity={0.7}
             >
-              <View style={styles.artistAvatar}>
-                <Text style={styles.artistEmoji}>
-                  {instrumentEmoji(artist.instrument)}
+              <View style={styles.avatar}>
+                <Text style={styles.avatarLetter}>
+                  {artist.name[0].toUpperCase()}
                 </Text>
               </View>
+
               <View style={styles.artistInfo}>
                 <Text style={styles.artistName}>{artist.name}</Text>
-                <Text style={styles.artistMeta}>
-                  {artist.instrument || (artist.artist_type === 'vocalist' ? 'Vocalist' : artist.artist_type)}
-                  {artist.is_deceased ? ' · Archival' : ''}
-                  {artist.book_recommended ? ' · 📖 Curated' : ''}
+                <Text style={styles.artistMeta} numberOfLines={1}>
+                  {[
+                    artist.instrument || (artist.artist_type === 'vocalist' ? 'Vocal' : artist.artist_type),
+                    artist.is_deceased ? 'Archival' : null,
+                    artist.book_recommended ? '📖 Curated' : null,
+                  ].filter(Boolean).join('  ·  ')}
                 </Text>
               </View>
-              <Text style={styles.chevron}>›</Text>
+
+              <Ionicons name="chevron-forward" size={16} color={YT.textTertiary} />
             </TouchableOpacity>
           )}
         />
+
       ) : (
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.list}>
-          {/* Popular ragas */}
+
+        /* ── Ragas grid ── */
+        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.ragaScroll}>
+
           <Text style={styles.sectionLabel}>Popular Ragas</Text>
           <View style={styles.ragaGrid}>
-            {ragas.filter(r => r.is_popular).map(raga => (
+            {popularRagas.map(raga => (
               <TouchableOpacity
                 key={raga.name}
-                style={styles.ragaCard}
+                style={styles.ragaChip}
                 onPress={() => router.push(`/search?q=${encodeURIComponent(raga.name)}`)}
                 activeOpacity={0.7}
               >
@@ -111,13 +127,12 @@ export default function BrowseScreen() {
             ))}
           </View>
 
-          {/* All ragas */}
-          <Text style={[styles.sectionLabel, { marginTop: 24 }]}>All Ragas</Text>
+          <Text style={[styles.sectionLabel, { marginTop: 28 }]}>All Ragas</Text>
           <View style={styles.ragaGrid}>
-            {ragas.filter(r => !r.is_popular).map(raga => (
+            {otherRagas.map(raga => (
               <TouchableOpacity
                 key={raga.name}
-                style={[styles.ragaCard, styles.ragaCardDim]}
+                style={[styles.ragaChip, styles.ragaChipDim]}
                 onPress={() => router.push(`/search?q=${encodeURIComponent(raga.name)}`)}
                 activeOpacity={0.7}
               >
@@ -125,6 +140,8 @@ export default function BrowseScreen() {
               </TouchableOpacity>
             ))}
           </View>
+
+          <View style={{ height: 32 }} />
         </ScrollView>
       )}
     </View>
@@ -134,74 +151,107 @@ export default function BrowseScreen() {
 const styles = StyleSheet.create({
   container: {
     flex:            1,
-    backgroundColor: '#0f0a1e',
+    backgroundColor: YT.bg,
     paddingTop:      56,
   },
+
   header: {
-    paddingHorizontal: 16,
-    marginBottom:      16,
+    paddingHorizontal: 14,
+    paddingBottom:     12,
   },
   title: {
-    color:      '#f0e6d3',
-    fontSize:   24,
+    color:      YT.textPrimary,
+    fontSize:   20,
     fontWeight: '700',
   },
-  tabs: {
-    flexDirection:   'row',
-    marginHorizontal: 16,
-    marginBottom:    16,
-    backgroundColor: '#1a1433',
-    borderRadius:    12,
-    padding:         4,
+
+  // ── Tab pills ──
+  tabRow: {
+    flexDirection:    'row',
+    paddingHorizontal: 14,
+    gap:               8,
+    paddingBottom:     12,
   },
-  tabBtn: {
-    flex:            1,
-    paddingVertical: 10,
-    alignItems:      'center',
-    borderRadius:    10,
+  tabPill: {
+    paddingHorizontal: 18,
+    paddingVertical:    7,
+    borderRadius:      20,
+    backgroundColor:   YT.chip,
+    borderWidth:       1,
+    borderColor:       YT.border,
   },
-  activeTab: {
-    backgroundColor: '#7c3aed',
+  tabPillActive: {
+    backgroundColor: YT.textPrimary,
+    borderColor:     YT.textPrimary,
   },
-  tabText: {
-    color:      '#6b5a80',
+  tabPillText: {
+    color:      YT.textSecondary,
+    fontSize:   13,
     fontWeight: '600',
-    fontSize:   14,
   },
-  activeTabText: {
-    color: '#fff',
+  tabPillTextActive: {
+    color: YT.bg,
   },
+
+  divider: {
+    height:          1,
+    backgroundColor: YT.border,
+    marginBottom:    2,
+  },
+
   loader: { marginTop: 60 },
-  list:   { paddingBottom: 32 },
+
+  // ── Artist row ──
   artistRow: {
     flexDirection:  'row',
     alignItems:     'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    gap:            12,
     borderBottomWidth: 1,
-    borderBottomColor: '#1a1433',
+    borderBottomColor: YT.surface,
   },
-  artistAvatar: {
-    width:           44,
-    height:          44,
-    borderRadius:    22,
-    backgroundColor: '#1a1433',
+  avatar: {
+    width:           42,
+    height:          42,
+    borderRadius:    21,
+    backgroundColor: YT.surface,
     alignItems:      'center',
     justifyContent:  'center',
+    flexShrink:      0,
   },
-  artistEmoji: { fontSize: 22 },
-  artistInfo:  { flex: 1, marginLeft: 12 },
-  artistName:  { color: '#f0e6d3', fontSize: 15, fontWeight: '600' },
-  artistMeta:  { color: '#a89070', fontSize: 12, marginTop: 2 },
-  chevron:     { color: '#6b5a80', fontSize: 20 },
+  avatarLetter: {
+    color:      YT.textSecondary,
+    fontSize:   16,
+    fontWeight: '700',
+  },
+  artistInfo: {
+    flex: 1,
+    gap:  2,
+  },
+  artistName: {
+    color:      YT.textPrimary,
+    fontSize:   14,
+    fontWeight: '500',
+  },
+  artistMeta: {
+    color:    YT.textTertiary,
+    fontSize: 12,
+  },
+
+  // ── Ragas ──
+  ragaScroll: {
+    paddingTop: 16,
+    paddingBottom: 16,
+  },
   sectionLabel: {
-    color:      '#a89070',
+    color:      YT.textSecondary,
     fontSize:   12,
     fontWeight: '700',
     textTransform: 'uppercase',
     letterSpacing:  1,
-    paddingHorizontal: 16,
-    marginBottom: 12,
+    paddingHorizontal: 14,
+    marginBottom: 10,
   },
   ragaGrid: {
     flexDirection:  'row',
@@ -209,30 +259,31 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     gap:            8,
   },
-  ragaCard: {
-    backgroundColor: '#1e1040',
-    borderRadius:    12,
-    paddingHorizontal: 14,
-    paddingVertical:   10,
+  ragaChip: {
+    backgroundColor: YT.surface,
+    borderRadius:    4,
+    paddingHorizontal: 12,
+    paddingVertical:   8,
     borderWidth:     1,
-    borderColor:     '#7c3aed55',
+    borderColor:     YT.border,
     alignItems:      'center',
   },
-  ragaCardDim: {
-    backgroundColor: '#12102a',
-    borderColor:     '#2d1b4e',
+  ragaChipDim: {
+    backgroundColor: 'transparent',
+    borderColor:     YT.chip,
   },
   ragaName: {
-    color:      '#c084fc',
+    color:      YT.textPrimary,
     fontSize:   13,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   ragaNameDim: {
-    color: '#7c6a9a',
+    color:      YT.textSecondary,
+    fontWeight: '400',
   },
   ragaNum: {
-    color:    '#7c3aed',
+    color:    YT.red,
     fontSize: 10,
-    marginTop: 2,
+    marginTop: 1,
   },
 })

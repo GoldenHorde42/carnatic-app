@@ -2,15 +2,41 @@ import {
   View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert,
 } from 'react-native'
 import { useRouter } from 'expo-router'
+import { Ionicons } from '@expo/vector-icons'
 import { useAuth } from '../../hooks/useAuth'
+import { YT } from '../../lib/theme'
+
+type IoniconName = React.ComponentProps<typeof Ionicons>['name']
+
+function MenuItem({
+  icon, label, danger, onPress, value,
+}: {
+  icon:     IoniconName
+  label:    string
+  danger?:  boolean
+  onPress?: () => void
+  value?:   string
+}) {
+  return (
+    <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.7}>
+      <Ionicons name={icon} size={22} color={danger ? '#F44' : YT.textSecondary} style={styles.menuIcon} />
+      <Text style={[styles.menuLabel, danger && styles.menuLabelDanger]}>{label}</Text>
+      {value ? (
+        <Text style={styles.menuValue}>{value}</Text>
+      ) : (
+        <Ionicons name="chevron-forward" size={16} color={YT.textTertiary} />
+      )}
+    </TouchableOpacity>
+  )
+}
 
 export default function ProfileScreen() {
-  const router                            = useRouter()
+  const router                                       = useRouter()
   const { user, loading, signInWithGoogle, signOut } = useAuth()
 
   const handleSignOut = () => {
     Alert.alert('Sign out', 'Are you sure?', [
-      { text: 'Cancel', style: 'cancel' },
+      { text: 'Cancel',   style: 'cancel' },
       { text: 'Sign out', style: 'destructive', onPress: signOut },
     ])
   }
@@ -19,60 +45,75 @@ export default function ProfileScreen() {
 
   return (
     <View style={styles.container}>
+
+      {/* ── Header ── */}
       <View style={styles.header}>
-        <Text style={styles.title}>Profile</Text>
+        <Text style={styles.title}>Library</Text>
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false}>
         {user ? (
           <>
-            {/* User card */}
-            <View style={styles.userCard}>
-              <View style={styles.avatar}>
-                <Text style={styles.avatarEmoji}>👤</Text>
-              </View>
-              <View style={styles.userInfo}>
-                <Text style={styles.userName}>
-                  {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
+            {/* ── Account card ── */}
+            <View style={styles.accountCard}>
+              <View style={styles.bigAvatar}>
+                <Text style={styles.bigAvatarLetter}>
+                  {(user.user_metadata?.full_name || user.email || 'U')[0].toUpperCase()}
                 </Text>
-                <Text style={styles.userEmail}>{user.email}</Text>
               </View>
+              <Text style={styles.accountName}>
+                {user.user_metadata?.full_name || user.email?.split('@')[0] || 'User'}
+              </Text>
+              <Text style={styles.accountEmail}>{user.email}</Text>
             </View>
 
-            {/* Menu items */}
+            {/* ── Your library section ── */}
+            <Text style={styles.sectionLabel}>Your Library</Text>
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Your Library</Text>
-              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/search?q=my history')}>
-                <Text style={styles.menuEmoji}>📜</Text>
-                <Text style={styles.menuLabel}>Watch History</Text>
-                <Text style={styles.menuChevron}>›</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.menuItem}>
-                <Text style={styles.menuEmoji}>📋</Text>
-                <Text style={styles.menuLabel}>My Playlists</Text>
-                <Text style={styles.menuChevron}>›</Text>
-              </TouchableOpacity>
+              <MenuItem
+                icon="time-outline"
+                label="Watch History"
+                onPress={() => router.push('/search?q=my history')}
+              />
+              <MenuItem
+                icon="list-outline"
+                label="Playlists"
+              />
+              <MenuItem
+                icon="heart-outline"
+                label="Liked Videos"
+              />
             </View>
 
+            {/* ── Account section ── */}
+            <Text style={styles.sectionLabel}>Account</Text>
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>Account</Text>
-              <TouchableOpacity style={styles.menuItem} onPress={handleSignOut}>
-                <Text style={styles.menuEmoji}>🚪</Text>
-                <Text style={[styles.menuLabel, styles.signOutText]}>Sign Out</Text>
-              </TouchableOpacity>
+              <MenuItem
+                icon="log-out-outline"
+                label="Sign Out"
+                danger
+                onPress={handleSignOut}
+              />
             </View>
           </>
         ) : (
-          /* Not logged in */
-          <View style={styles.signInSection}>
-            <Text style={styles.signInEmoji}>🎵</Text>
-            <Text style={styles.signInTitle}>Sign in to unlock more</Text>
+          /* ── Signed-out state ── */
+          <View style={styles.signInBlock}>
+            <View style={styles.ytLogoLarge}>
+              <View style={styles.ytBadgeLarge}>
+                <Text style={styles.ytPlayLarge}>▶</Text>
+              </View>
+              <Text style={styles.ytWordLarge}>Carnatic</Text>
+            </View>
+
+            <Text style={styles.signInTitle}>Sign in</Text>
             <Text style={styles.signInSubtitle}>
               Get personalised recommendations, save playlists, and track your progress
             </Text>
 
-            <TouchableOpacity style={styles.googleBtn} onPress={signInWithGoogle}>
-              <Text style={styles.googleBtnText}>🔑  Sign in with Google</Text>
+            <TouchableOpacity style={styles.googleBtn} onPress={signInWithGoogle} activeOpacity={0.85}>
+              <Ionicons name="logo-google" size={18} color="#4285F4" />
+              <Text style={styles.googleBtnText}>Continue with Google</Text>
             </TouchableOpacity>
 
             <Text style={styles.skipText}>
@@ -81,11 +122,17 @@ export default function ProfileScreen() {
           </View>
         )}
 
-        {/* App info */}
-        <View style={styles.appInfo}>
-          <Text style={styles.appInfoText}>Carnatic App v1.0</Text>
-          <Text style={styles.appInfoText}>Curated Carnatic classical music</Text>
+        {/* ── Footer ── */}
+        <View style={styles.footer}>
+          <View style={styles.ytFooterRow}>
+            <View style={styles.ytMini}>
+              <Text style={styles.ytMiniPlay}>▶</Text>
+            </View>
+            <Text style={styles.footerPowered}>Powered by YouTube</Text>
+          </View>
+          <Text style={styles.footerVersion}>Carnatic App v1.0</Text>
         </View>
+
       </ScrollView>
     </View>
   )
@@ -94,110 +141,188 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex:            1,
-    backgroundColor: '#0f0a1e',
+    backgroundColor: YT.bg,
     paddingTop:      56,
   },
+
   header: {
-    paddingHorizontal: 16,
-    marginBottom:      24,
+    paddingHorizontal: 14,
+    paddingBottom:     10,
   },
   title: {
-    color:      '#f0e6d3',
-    fontSize:   24,
+    color:      YT.textPrimary,
+    fontSize:   20,
     fontWeight: '700',
   },
-  userCard: {
-    flexDirection:  'row',
-    alignItems:     'center',
-    marginHorizontal: 16,
-    marginBottom:   24,
-    backgroundColor: '#1a1433',
-    borderRadius:   16,
-    padding:        16,
+
+  // ── Account card ──
+  accountCard: {
+    alignItems:  'center',
+    paddingTop:  28,
+    paddingBottom: 24,
+    gap:         6,
+    borderBottomWidth: 1,
+    borderBottomColor: YT.border,
+    marginBottom: 24,
   },
-  avatar: {
-    width:           56,
-    height:          56,
-    borderRadius:    28,
-    backgroundColor: '#2d1b4e',
+  bigAvatar: {
+    width:           64,
+    height:          64,
+    borderRadius:    32,
+    backgroundColor: YT.surface,
     alignItems:      'center',
     justifyContent:  'center',
+    marginBottom:    6,
   },
-  avatarEmoji: { fontSize: 28 },
-  userInfo:    { flex: 1, marginLeft: 12 },
-  userName:    { color: '#f0e6d3', fontSize: 17, fontWeight: '700' },
-  userEmail:   { color: '#a89070', fontSize: 13, marginTop: 2 },
-  section:     { marginBottom: 24 },
-  sectionTitle: {
-    color:      '#a89070',
+  bigAvatarLetter: {
+    color:      YT.textPrimary,
+    fontSize:   28,
+    fontWeight: '700',
+  },
+  accountName: {
+    color:      YT.textPrimary,
+    fontSize:   16,
+    fontWeight: '600',
+  },
+  accountEmail: {
+    color:    YT.textTertiary,
+    fontSize: 13,
+  },
+
+  // ── Sections ──
+  sectionLabel: {
+    color:      YT.textTertiary,
     fontSize:   12,
     fontWeight: '700',
     textTransform: 'uppercase',
-    letterSpacing:  1,
-    paddingHorizontal: 16,
-    marginBottom: 8,
+    letterSpacing: 0.8,
+    paddingHorizontal: 14,
+    marginBottom: 4,
+    marginTop:    8,
   },
+  section: {
+    marginBottom: 20,
+  },
+
+  // ── Menu items ──
   menuItem: {
     flexDirection:  'row',
     alignItems:     'center',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    backgroundColor: '#1a1433',
-    marginHorizontal: 16,
-    marginBottom:   2,
-    borderRadius:   10,
+    paddingHorizontal: 14,
+    paddingVertical:   14,
+    borderBottomWidth: 1,
+    borderBottomColor: YT.surface,
   },
-  menuEmoji:   { fontSize: 20, marginRight: 12 },
-  menuLabel:   { flex: 1, color: '#f0e6d3', fontSize: 15 },
-  menuChevron: { color: '#6b5a80', fontSize: 20 },
-  signOutText: { color: '#f87171' },
-  signInSection: {
+  menuIcon:  { marginRight: 14 },
+  menuLabel: {
+    flex:     1,
+    color:    YT.textPrimary,
+    fontSize: 14,
+  },
+  menuLabelDanger: { color: '#F44' },
+  menuValue: {
+    color:    YT.textTertiary,
+    fontSize: 13,
+  },
+
+  // ── Sign-in block ──
+  signInBlock: {
     alignItems:      'center',
     paddingHorizontal: 32,
     paddingTop:      40,
+    gap:             14,
   },
-  signInEmoji: { fontSize: 64, marginBottom: 16 },
+  ytLogoLarge: {
+    flexDirection: 'row',
+    alignItems:    'center',
+    gap:           10,
+    marginBottom:  8,
+  },
+  ytBadgeLarge: {
+    width:           40,
+    height:          28,
+    backgroundColor: YT.red,
+    borderRadius:    6,
+    alignItems:      'center',
+    justifyContent:  'center',
+  },
+  ytPlayLarge: {
+    color:    '#fff',
+    fontSize: 14,
+    marginLeft: 1,
+  },
+  ytWordLarge: {
+    color:      YT.textPrimary,
+    fontSize:   28,
+    fontWeight: '700',
+    letterSpacing: -0.5,
+  },
   signInTitle: {
-    color:      '#f0e6d3',
+    color:      YT.textPrimary,
     fontSize:   22,
     fontWeight: '700',
     textAlign:  'center',
   },
   signInSubtitle: {
-    color:     '#a89070',
+    color:     YT.textSecondary,
     fontSize:  14,
     textAlign: 'center',
-    marginTop: 10,
     lineHeight: 20,
   },
   googleBtn: {
-    backgroundColor: '#fff',
-    borderRadius:    28,
-    paddingVertical:  14,
-    paddingHorizontal: 32,
-    marginTop:        28,
-    width:           '100%',
+    flexDirection:   'row',
     alignItems:      'center',
+    gap:             10,
+    borderWidth:     1,
+    borderColor:     YT.border,
+    borderRadius:    4,
+    paddingVertical:  12,
+    paddingHorizontal: 28,
+    marginTop:        8,
+    backgroundColor:  YT.surface,
   },
   googleBtnText: {
-    color:      '#1a1433',
-    fontSize:   16,
-    fontWeight: '700',
+    color:      YT.textPrimary,
+    fontSize:   15,
+    fontWeight: '600',
   },
   skipText: {
-    color:    '#6b5a80',
+    color:    YT.textTertiary,
     fontSize: 12,
-    marginTop: 16,
     textAlign: 'center',
   },
-  appInfo: {
+
+  // ── Footer ──
+  footer: {
     alignItems:  'center',
-    marginTop:   40,
-    marginBottom: 32,
-    gap:          4,
+    gap:         6,
+    paddingVertical: 40,
+    paddingBottom: 20,
   },
-  appInfoText: {
-    color:    '#3d2a5a',
+  ytFooterRow: {
+    flexDirection: 'row',
+    alignItems:    'center',
+    gap:           6,
+  },
+  ytMini: {
+    width:           18,
+    height:          12,
+    backgroundColor: YT.red,
+    borderRadius:    3,
+    alignItems:      'center',
+    justifyContent:  'center',
+  },
+  ytMiniPlay: {
+    color:    '#fff',
+    fontSize: 6,
+    marginLeft: 1,
+  },
+  footerPowered: {
+    color:    YT.textTertiary,
     fontSize: 12,
+  },
+  footerVersion: {
+    color:    YT.textTertiary,
+    fontSize: 11,
   },
 })
