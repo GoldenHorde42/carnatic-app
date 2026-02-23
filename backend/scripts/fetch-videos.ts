@@ -74,18 +74,161 @@ function guessVideoType(title: string): string {
   return 'other';
 }
 
-/** Guess raga from title — basic matching, can be enriched later */
+/**
+ * Guess raga from video title.
+ * Uses comprehensive list from teacher's book:
+ *   - Appendix B (popular janya ragas)
+ *   - All 72 Melakartas
+ *   - Common aliases / alternate spellings
+ * Returns the canonical name if found, else null.
+ */
 function guessRaga(title: string): string | null {
-  const ragas = [
-    'shankarabharanam', 'kalyani', 'bhairavi', 'kambhoji', 'todi',
-    'begada', 'saveri', 'madhyamavati', 'mohanam', 'hamsadhwani',
-    'charukesi', 'natabhairavi', 'nattai', 'varali', 'kedaragowla',
-    'bilahari', 'sri raga', 'desh', 'yaman', 'bhimpalasi',
-    'pantuvarali', 'karaharapriya', 'bowli', 'anandabhairavi',
+  // Each entry: [canonical name, ...search terms / aliases]
+  const RAGA_LIST: [string, ...string[]][] = [
+    // ── Popular Janya Ragas (Appendix B) ────────────────────
+    ['Abheri',            'abheri', 'abhiri'],
+    ['Abhogi',            'abhogi'],
+    ['Ahiri',             'ahiri'],
+    ['Amrtavarshini',     'amrtavarshini', 'amritavarshini', 'amrutavarshini'],
+    ['Athanaa',           'athanaa', 'athana'],
+    ['Behag',             'behag', 'behaga'],
+    ['Bilahari',          'bilahari'],
+    ['Bindhumalini',      'bindhumalini', 'bindumalini'],
+    ['Bowli',             'bowli'],
+    ['Darbar',            'darbar', 'durbar'],
+    ['Devagandhari',      'devagandhari'],
+    ['Hamsadhvani',       'hamsadhvani', 'hamsadhwani'],
+    ['Huseni',            'huseni', 'husaini'],
+    ['Jaganmohini',       'jaganmohini'],
+    ['Janaranjani',       'janaranjani'],
+    ['Jayantashree',      'jayantashree', 'jayantasri', 'jayanthasri'],
+    ['Kadanakutoohalam',  'kadanakutoohalam', 'kadanakudhuhalam'],
+    ['Kalyanavasamtam',   'kalyanavasamtam', 'kalyanavasamtham'],
+    ['Kamalaamanohari',   'kamalaamanohari', 'kamalamannohari'],
+    ['Kanada',            'kanada'],
+    ['Kannadagowla',      'kannadagowla'],
+    ['Karnaranjani',      'karnaranjani'],
+    ['Kedaragowla',       'kedaragowla', 'kedharagowla'],
+    ['Kedaram',           'kedaram'],
+    ['Kuntalavarali',     'kuntalavarali', 'kunthalavarali'],
+    ['Lalita',            'lalita'],
+    ['Madhyamavati',      'madhyamavati', 'madhyamavathi'],
+    ['Malayamarutam',     'malayamarutam', 'malayamarutham'],
+    ['Mohanakalyani',     'mohanakalyani'],
+    ['Mohanam',           'mohanam', 'mohana'],
+    ['Mukhari',           'mukhari'],
+    ['Nalinakanti',       'nalinakanti', 'nalinakanthi'],
+    ['Nattaikuranji',     'nattaikuranji', 'nattaikurinji'],
+    ['Navarasakannada',   'navarasakannada'],
+    ['Paras',             'paras'],
+    ['Poorvikalyani',     'poorvikalyani', 'poorvi kalyani'],
+    ['Ranjani',           'ranjani'],
+    ['Reetigowla',        'reetigowla', 'reeti gowla'],
+    ['Saranga',           'saranga'],
+    ['Sarasvati',         'sarasvati', 'saraswati'],
+    ['Saveri',            'saveri'],
+    ['Shreeranjani',      'shreeranjani', 'sree ranjani', 'sri ranjani'],
+    ['Shuddhadhanyasi',   'shuddhadhanyasi', 'suddha dhanyasi'],
+    ['Sindhubhairavi',    'sindhubhairavi', 'sindhu bhairavi'],
+    ['Sowrashthra',       'sowrashthra', 'saurashtra', 'sowrashtram'],
+    ['Sunadavinodini',    'sunadavinodini'],
+    ['Surati',            'surati'],
+    ['Todi',              'todi'],
+    ['Valachi',           'valachi', 'valaji'],
+    ['Vasanta',           'vasanta', 'vasantha'],
+    ['Yamunakalyani',     'yamunakalyani', 'yamuna kalyani', 'yaman kalyani'],
+    ['Anandabhairavi',    'anandabhairavi'],
+    ['Begada',            'begada'],
+    ['Bhairavi',          'bhairavi'],
+    ['Kalyani',           'kalyani'],
+    ['Kambhoji',          'kambhoji', 'khambhoji'],
+    ['Nattai',            'nattai'],
+    ['Pantuvarali',       'pantuvarali', 'purvi kalyani'],
+    ['Sri',               ' sri raga', 'sree raga'],
+    ['Varali',            'varali'],
+
+    // ── All 72 Melakartas ────────────────────────────────────
+    ['Kanakangi',             'kanakangi'],
+    ['Ratnangi',              'ratnangi'],
+    ['Ganamoorti',            'ganamoorti'],
+    ['Vanaspati',             'vanaspati'],
+    ['Manavati',              'manavati'],
+    ['Tanaroopi',             'tanaroopi'],
+    ['Senavati',              'senavati'],
+    ['Hanumatodi',            'hanumatodi'],
+    ['Dhenuka',               'dhenuka'],
+    ['Natakapriya',           'natakapriya'],
+    ['Kokilapriya',           'kokilapriya'],
+    ['Roopavati',             'roopavati'],
+    ['Gayakapriya',           'gayakapriya'],
+    ['Vakulabharanam',        'vakulabharanam'],
+    ['Mayamalavagowla',       'mayamalavagowla', 'mayamalavagaula'],
+    ['Chakravakam',           'chakravakam'],
+    ['Sooryakantam',          'sooryakantam', 'suryakantam'],
+    ['Hatakambari',           'hatakambari'],
+    ['Jhankaradhvani',        'jhankaradhvani'],
+    ['Natabhairavi',          'natabhairavi'],
+    ['Keeravani',             'keeravani'],
+    ['Kharaharapriya',        'kharaharapriya', 'karaharapriya'],
+    ['Gowrimanohari',         'gowrimanohari', 'gouri manohari'],
+    ['Varunapriya',           'varunapriya'],
+    ['Mararanjani',           'mararanjani'],
+    ['Charukeshi',            'charukeshi', 'charukesi'],
+    ['Sarasangi',             'sarasangi'],
+    ['Harikambhodhi',         'harikambhodhi', 'hari kambodhi'],
+    ['Shankarabharanam',      'shankarabharanam', 'dheerashankarabharanam', 'sankarabharanam'],
+    ['Naganandini',           'naganandini'],
+    ['Yagapriya',             'yagapriya'],
+    ['Ragavardhini',          'ragavardhini'],
+    ['Gangeyabhooshan',       'gangeyabhooshan'],
+    ['Vagadheeshvari',        'vagadheeshvari'],
+    ['Shoolini',              'shoolini'],
+    ['Chalanata',             'chalanata', 'chalanatta'],
+    ['Salagam',               'salagam'],
+    ['Jalarnavam',            'jalarnavam'],
+    ['Jhalavarali',           'jhalavarali'],
+    ['Navaneetam',            'navaneetam'],
+    ['Pavani',                'pavani'],
+    ['Raghupriya',            'raghupriya'],
+    ['Gavambhodhi',           'gavambhodhi'],
+    ['Bhavapriya',            'bhavapriya'],
+    ['Shubhapantuvarali',     'shubhapantuvarali'],
+    ['Shadvidhamargini',      'shadvidhamargini'],
+    ['Suvarnangi',            'suvarnangi'],
+    ['Divyamani',             'divyamani'],
+    ['Dhavalamabari',         'dhavalamabari', 'dhavalambari'],
+    ['Namanarayani',          'namanarayani'],
+    ['Kamavardhini',          'kamavardhini'],
+    ['Ramapriya',             'ramapriya'],
+    ['Gamanashrama',          'gamanashrama'],
+    ['Vishwambhari',          'vishwambhari'],
+    ['Shyamallangi',          'shyamallangi'],
+    ['Shanmukhapriya',        'shanmukhapriya'],
+    ['Simhendramadhyamam',    'simhendramadhyamam'],
+    ['Hemavati',              'hemavati'],
+    ['Dharmavati',            'dharmavati'],
+    ['Neetimati',             'neetimati'],
+    ['Kantamani',             'kantamani'],
+    ['Rishabhapriya',         'rishabhapriya'],
+    ['Latangi',               'latangi'],
+    ['Vachaspati',            'vachaspati'],
+    ['Mechakalyani',          'mechakalyani'],
+    ['Chitrambari',           'chitrambari'],
+    ['Sucharitra',            'sucharitra'],
+    ['Jyotisvaroopin',        'jyotisvaroopin'],
+    ['Dhatuvardhini',         'dhatuvardhini'],
+    ['Nasikabhooshani',       'nasikabhooshani'],
+    ['Kosalam',               'kosalam'],
+    ['Rasikapriya',           'rasikapriya'],
   ];
+
   const t = title.toLowerCase();
-  for (const raga of ragas) {
-    if (t.includes(raga)) return raga.charAt(0).toUpperCase() + raga.slice(1);
+  for (const [canonical, ...aliases] of RAGA_LIST) {
+    for (const alias of aliases) {
+      // Use word-boundary style check: alias must appear as a standalone word
+      const re = new RegExp(`(^|[^a-z])${alias}([^a-z]|$)`);
+      if (re.test(t)) return canonical;
+    }
   }
   return null;
 }
