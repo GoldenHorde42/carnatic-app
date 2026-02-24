@@ -1,3 +1,6 @@
+# Secrets inventory — local reference only
+SECRETS.md
+
 # Environment variables — NEVER commit these
 .env
 .env.local
