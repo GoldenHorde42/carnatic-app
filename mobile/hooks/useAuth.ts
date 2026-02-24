@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase'
 // OAuth Client IDs (safe to embed — these are public identifiers)
 // iOS client ID: add after Apple Developer enrollment + iOS OAuth client creation
 const ANDROID_CLIENT_ID = '298276742704-mue9um64sv808up3ehfudct13ma8bbdi.apps.googleusercontent.com'
-const IOS_CLIENT_ID     = '' // TODO: add after Apple Developer enrollment
+const IOS_CLIENT_ID     = '298276742704-o8c0k7i2l5fefjdvphdntsvrl8c43pjg.apps.googleusercontent.com'
 
 export function useAuth() {
   const [session, setSession] = useState<Session | null>(null)
