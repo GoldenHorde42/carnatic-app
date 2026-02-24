@@ -17,46 +17,39 @@ Copy-paste these into App Store Connect and Google Play Console.
 
 ## Full Description (used for both stores, ~4000 chars max)
 
-Carnatic is the easiest way for music students, teachers, and enthusiasts to discover and
-enjoy Carnatic classical music — all in one curated, YouTube-powered app.
+Carnatic is the easiest way for music students, teachers, and enthusiasts to discover and enjoy Carnatic classical music — all in one curated, YouTube-powered app.
 
-**Search the way you think**
-Type anything: an artist's name, a raga, a tala, a composer, or even how you're feeling.
-Our intelligent search understands "Bhairavi raga on violin", "T.M. Krishna live concert",
-"Tyagaraja kritis", and even "I'm in a melancholic mood today."
+SEARCH THE WAY YOU THINK
+Type anything: an artist's name, a raga, a tala, a composer, or even how you're feeling. Our intelligent search understands "Bhairavi raga on violin", "T.M. Krishna live concert", "Tyagaraja kritis", and even "I'm in a melancholic mood today."
 
-**Curated for quality**
-Unlike a generic YouTube search, Carnatic only shows you content from our hand-picked list
-of 66 verified Carnatic artists — no unrelated videos, no noise.
+CURATED FOR QUALITY
+Unlike a generic YouTube search, Carnatic only shows you content from our hand-picked list of 66 verified Carnatic artists — no unrelated videos, no noise.
 
-**Browse by artist or raga**
-Explore videos from your favourite artists or dive into a specific raga. All 72 melakarta
-ragas and 48 popular janya ragas are catalogued and searchable.
+BROWSE BY ARTIST OR RAGA
+Explore videos from your favourite artists or dive into a specific raga. All 72 melakarta ragas and 48 popular janya ragas are catalogued and searchable.
 
-**Personalised recommendations**
-Sign in with Google to get recommendations tailored to what you've been listening to.
-The more you listen, the smarter your feed becomes.
+PERSONALISED RECOMMENDATIONS
+Sign in with Google to get recommendations tailored to what you've been listening to. The more you listen, the smarter your feed becomes.
 
-**Powered by YouTube**
-Watch full-length concerts, kutcheries, lecture demonstrations, and student performances —
-all streamed directly through YouTube's player.
+POWERED BY YOUTUBE
+Watch full-length concerts, kutcheries, lecture demonstrations, and student performances — all streamed directly through YouTube's player.
 
-**For everyone**
+FOR EVERYONE
 - Students learning Carnatic music
 - Teachers looking for repertoire examples
 - Parents finding content for their children
 - Enthusiasts who love classical South Indian music
 
-**Features:**
-• Natural language search (artist, raga, tala, mood, composer)
-• Browse 66+ curated artists
-• Full raga catalog — 72 melakartas + 48 janya ragas
-• YouTube video player with native controls
-• Personalised recommendations (free with Google sign-in)
-• Dark mode interface
-• Works without an account
+FEATURES
+- Natural language search (artist, raga, tala, mood, composer)
+- Browse 66+ curated artists
+- Full raga catalog: 72 melakartas + 48 janya ragas
+- YouTube video player with native controls
+- Personalised recommendations (free with Google sign-in)
+- Dark mode interface
+- Works without an account
 
-Powered by YouTube · Content sourced via YouTube Data API v3
+Powered by YouTube. Content sourced via YouTube Data API v3.
 
 ---
 
@@ -72,7 +65,7 @@ Powered by YouTube · Content sourced via YouTube Data API v3
 - **Android:** Everyone
 
 ## Privacy Policy URL
-`https://goldenhorde42.github.io/carnatic-app/privacy`
+`https://carnaticapp.org/privacy.html`
 
 ---
 

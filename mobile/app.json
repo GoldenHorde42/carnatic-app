@@ -16,7 +16,7 @@
       "raga",
       "youtube"
     ],
-    "privacyPolicyUrl": "https://goldenhorde42.github.io/carnatic-app/privacy",
+    "privacyPolicyUrl": "https://carnaticapp.org/privacy.html",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -25,11 +25,12 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.carnaticapp.music",
-      "buildNumber": "1",
+      "buildNumber": "2",
       "infoPlist": {
         "NSCameraUsageDescription": "Camera is not used by this app.",
         "NSMicrophoneUsageDescription": "Microphone is not used by this app.",
-        "NSPhotoLibraryUsageDescription": "Photo library is not used by this app."
+        "NSPhotoLibraryUsageDescription": "Photo library is not used by this app.",
+        "ITSAppUsesNonExemptEncryption": false
       },
       "privacyManifests": {
         "NSPrivacyTracking": false,
