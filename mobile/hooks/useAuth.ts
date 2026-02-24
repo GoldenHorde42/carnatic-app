@@ -29,7 +29,7 @@ export function useAuth() {
   }, [])
 
   const signInWithGoogle = async () => {
-    const redirectUrl = 'com.carnaticapp.music://auth/callback'
+    const redirectUrl = 'carnatic://auth/callback'
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options:  {
