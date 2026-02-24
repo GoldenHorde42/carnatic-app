@@ -1,8 +1,13 @@
 # Carnatic App — Complete Handoff Document
 
-> **Purpose:** Drop this file into any new chat or agent session. It contains everything  
-> needed to continue development without losing context.  
-> **Last updated:** Feb 2026
+> **For the AI agent reading this:**
+> This file is the single source of truth for the project.
+> - **Read this file first** before doing anything.
+> - **Update this file** at the end of every session with what you changed, what is now done, and anything the next agent needs to know.
+> - Keep the "Current Status" table and "What Was Done Last Session" section current.
+> - Never let this file fall out of date.
+>
+> **Last updated:** Feb 2026 (publishing setup session)
 
 ---
 
@@ -13,12 +18,62 @@ It wraps YouTube's Carnatic music library with curated search, raga/artist brows
 recommendations, and (coming soon) teacher tools for playlist assignment.
 
 **Two products:**
-1. **Mobile app** — iOS + Android, built with React Native + Expo (PRIMARY)
-2. **Chrome extension** — filters YouTube.com search results to Carnatic only (SECONDARY, not built yet)
+1. **Mobile app** — iOS + Android, built with React Native + Expo **(PRIMARY — active development)**
+2. **Chrome extension** — filters YouTube.com to Carnatic results only **(SECONDARY — not started yet)**
 
-**Stack summary:** React Native (Expo) → Supabase Edge Functions → PostgreSQL (Supabase) ↔ YouTube Data API v3  
-**LLM for search:** Groq (llama-3.3-70b-versatile)  
-**GitHub repo:** Private — `git@github.com:<gouthamswaminathan>/carnatic-app.git`
+**Stack:**
+- Frontend: React Native + Expo + Expo Router
+- Backend: Supabase Edge Functions (Deno/TypeScript)
+- Database: PostgreSQL on Supabase
+- Video source: YouTube Data API v3
+- LLM (search intent): Groq `llama-3.3-70b-versatile`
+- Build & deploy: EAS (Expo Application Services)
+
+**GitHub repo:** Private — `git@github.com:GoldenHorde42/carnatic-app.git`  
+**Branch:** `main`
+
+---
+
+## What Was Done Last Session (Feb 2026 — Publishing Setup)
+
+The following was implemented to prepare the app for App Store / Google Play submission:
+
+1. **`mobile/app.json`** — Updated with:
+   - Bundle ID changed to `com.carnaticapp.music` (both iOS `bundleIdentifier` and Android `package`)
+   - `buildNumber: "1"` and `versionCode: 1` set for first release
+   - iOS `infoPlist` added with required privacy usage descriptions
+   - iOS `privacyManifests` added (required for App Store since iOS 17.2)
+   - `description`, `keywords` for store metadata
+   - `extra.eas.projectId` placeholder added (must be filled in after `npx eas-cli init`)
+
+2. **`mobile/eas.json`** — Created from scratch with:
+   - `development`, `preview`, `production` build profiles
+   - `env` blocks in all profiles with `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY`
+   - `submit` block with placeholders for Apple and Google Play submission config
+
+3. **`mobile/lib/supabase.ts`** — Updated to read from `EXPO_PUBLIC_` env vars with hardcoded fallbacks (so Expo Go still works without a .env file)
+
+4. **`mobile/hooks/useAuth.ts`** — Updated OAuth redirect URL to `com.carnaticapp.music://auth/callback` (matches the new bundle ID); added `prompt: 'select_account'` to Google OAuth options
+
+5. **`mobile/app/auth/callback.tsx`** — New file. Handles the deep-link after Google OAuth redirect. Waits 500ms for Supabase to pick up the session, then navigates to home (or profile on failure)
+
+6. **`mobile/app/_layout.tsx`** — Registered `auth/callback` and `privacy` routes with modal presentation
+
+7. **`mobile/app/privacy.tsx`** — New file. Full Privacy Policy screen covering:
+   - What data is collected (account info, watch history, analytics)
+   - YouTube API data usage disclosure
+   - COPPA compliance note (students under 13)
+   - Data retention (12 months watch history, 24 months analytics)
+   - User rights and deletion procedure
+   - Contact email: `support@carnaticapp.music`
+
+8. **`mobile/app/(tabs)/profile.tsx`** — Added Privacy Policy link in both signed-in and signed-out states
+
+9. **`mobile/assets/icon.svg`** + **`mobile/assets/splash.svg`** — SVG source files for the app icon (dark purple + red play button + "CARNATIC" wordmark). Must be exported to PNG before store submission.
+
+10. **`mobile/scripts/generate-icons.js`** — Node script that writes the SVG source files. Run with `node scripts/generate-icons.js`.
+
+All changes committed and pushed to `main` with commit `62c0bc8`.
 
 ---
 
@@ -27,32 +82,44 @@ recommendations, and (coming soon) teacher tools for playlist assignment.
 ### ✅ Done and working
 | Thing | Detail |
 |-------|--------|
-| Database schema | 8 tables deployed to Supabase (see §Database) |
+| Database schema | 8 tables deployed to Supabase (artists, videos, profiles, watch_history, playlists, playlist_videos, teacher_students, fetch_log) |
 | Artist seed data | 66 curated Carnatic artists in `artists` table |
 | Raga catalog | 120 ragas (72 melakartas + 48 janya ragas) in `ragas` table |
-| Video library | **641 videos** fetched and stored from YouTube |
-| `fetch-videos` Edge Function | 3-tier YouTube ingestion strategy, deployed |
+| Video library | ~641 videos fetched and stored from YouTube |
+| `fetch-videos` Edge Function | 3-tier YouTube ingestion strategy, deployed to Supabase |
 | `search` Edge Function | LLM-powered search with deterministic pre-parser, deployed |
 | `recommend` Edge Function | Personalised recommendations (watch history), deployed |
-| Mobile app | All 5 screens built and running: Home, Search, Browse, Profile, Player |
-| YouTube player | Embeds YouTube video in-app via react-native-youtube-iframe |
-| Dark mode UI | YouTube-style dark mode, "Powered by YouTube" attribution |
-| Search quality | 11/11 test cases passing (artist, raga, mood, composer, instrument) |
-| Expo Go testing | App runs on physical phone via Expo Go |
+| Mobile app screens | Home, Search, Browse, Profile, Video Player — all built |
+| YouTube player | Embeds via `react-native-youtube-iframe`; YouTube ads play normally (ToS compliant) |
+| Dark mode UI | YouTube-style dark mode, "Powered by YouTube" attribution everywhere |
+| Search quality | 11/11 test cases passing (artist, raga, mood, composer, instrument queries) |
+| Expo Go testing | App runs on physical phone via Expo Go (scan QR; VPN must be OFF) |
+| EAS config | `eas.json` created, `app.json` updated with bundle IDs, build numbers |
+| Privacy Policy | In-app privacy policy screen at `/privacy` |
+| Auth callback | Deep-link handler at `/auth/callback` for Google OAuth redirect |
+| Bundle IDs | `com.carnaticapp.music` (iOS + Android) |
+| Env vars | `EXPO_PUBLIC_` vars wired in `eas.json` for all build profiles |
 
 ### ⚠️ Partially done
-| Thing | Status | Notes |
-|-------|--------|-------|
-| Google OAuth login | UI built, hook written | `GOOGLE_CLIENT_ID` needs to be added to Supabase secrets + configured for mobile |
-| Recommendations | Logic deployed | Works for logged-in users; anonymous users see popular videos by view count |
-| Raga tagging | 33/641 videos tagged | Most videos get raga from title parsing; need LLM enrichment pass |
-| Daily video refresh | Edge function ready | Needs cron job set up (see §Cron) |
+| Thing | Status | What's left |
+|-------|--------|-------------|
+| Google OAuth login | UI built, hook written, redirect URL updated | Must add OAuth clients in Google Cloud Console for iOS + Android; add bundle ID + SHA-1; configure in Supabase Auth settings |
+| EAS Project ID | `eas.json` has placeholder | Run `npx eas-cli init` from `mobile/` to get real ID; paste into `app.json` |
+| Recommendations | Logic deployed | Works for logged-in users; anonymous users see popular videos by view_count |
+| Raga tagging | ~33/641 videos tagged | Most videos get raga from title parsing; need LLM enrichment pass |
+| Daily video refresh | Edge function ready | Needs cron job SQL to be run in Supabase (see §Cron) |
+| App icon | SVG source created | Export `assets/icon.svg` to 1024×1024 PNG using Figma/Canva/browser |
+| Privacy Policy URL | Screen built in-app | Needs to be hosted at a public URL for Google Cloud and app stores |
 
 ### ❌ Not started
+- Apple Developer Account ($99/year) — needed before iOS build
+- Google Play Console Account ($25 one-time) — needed before Android submission
+- EAS Build (first production build)
+- App Store Connect listing (screenshots, description)
+- Google Play Console listing
+- AdMob integration (monetization Phase 2)
+- Premium tier / RevenueCat (monetization Phase 3)
 - Chrome extension
-- App Store / Google Play submission (next major milestone)
-- AdMob integration
-- Premium tier (RevenueCat)
 - Teacher tools (Phase 3)
 
 ---
@@ -61,51 +128,61 @@ recommendations, and (coming soon) teacher tools for playlist assignment.
 
 ```
 carnatic-app/
-├── SETUP.md                              ← This file
+├── SETUP.md                              ← This file — update after every session
 ├── game-plan.md                          ← Full product design + roadmap
-├── .env.example                          ← Template for all secrets
 ├── .gitignore
 │
 ├── backend/
 │   ├── package.json
-│   ├── tsconfig.json
-│   ├── supabase/
-│   │   ├── config.toml                   ← db.major_version = 17 (important!)
-│   │   ├── migrations/
-│   │   │   ├── 001_initial_schema.sql    ← Core tables, RLS, triggers
-│   │   │   ├── 002_seed_artists.sql      ← 66 Carnatic artists
-│   │   │   ├── 003_book_artists_ragas.sql← 72 melakartas + 48 janya ragas
-│   │   │   ├── 004_fix_channel_ids.sql   ← Corrected YouTube channel IDs
-│   │   │   ├── 005_watch_history.sql     ← Enriched watch_history table
-│   │   │   └── 006_artist_search_meta.sql← fetch_strategy, search_aliases, is_deceased
-│   │   └── functions/
-│   │       ├── search/index.ts           ← LLM search (Groq 70B)
-│   │       ├── fetch-videos/index.ts     ← YouTube video ingestion
-│   │       └── recommend/index.ts        ← Recommendation engine
-│   └── scripts/
-│       ├── fetch-videos.ts               ← Local version (not used in prod)
-│       └── fix-channel-ids.ts            ← One-time channel ID fixer (done)
+│   ├── tsconfig.json                     ← lib: ["dom","es2021"] — required for fetch/console
+│   └── supabase/
+│       ├── config.toml                   ← db.major_version = 17 (must match Supabase project)
+│       ├── migrations/
+│       │   ├── 001_initial_schema.sql    ← Core tables, RLS, triggers
+│       │   ├── 002_seed_artists.sql      ← 66 Carnatic artists
+│       │   ├── 003_book_artists_ragas.sql← 72 melakartas + 48 janya ragas
+│       │   ├── 004_fix_channel_ids.sql   ← Corrected YouTube channel IDs
+│       │   ├── 005_watch_history.sql     ← Enriched watch_history table
+│       │   └── 006_artist_search_meta.sql← fetch_strategy, search_aliases, is_deceased
+│       └── functions/
+│           ├── search/index.ts           ← LLM search (Groq 70B) + deterministic pre-parser
+│           ├── fetch-videos/index.ts     ← YouTube video ingestion (3-tier strategy)
+│           └── recommend/index.ts        ← Recommendation engine
 │
 └── mobile/
-    ├── app.json                          ← Expo config (bundle ID, plugins)
+    ├── app.json                          ← Expo config (bundle ID = com.carnaticapp.music)
+    ├── eas.json                          ← EAS Build profiles (development/preview/production)
     ├── package.json
-    ├── app/                              ← Expo Router screens
-    │   ├── _layout.tsx                   ← Root layout + auth guard
+    ├── app/
+    │   ├── _layout.tsx                   ← Root layout; registers all routes
     │   ├── (tabs)/
     │   │   ├── _layout.tsx               ← Tab bar (Home/Search/Browse/Profile)
     │   │   ├── index.tsx                 ← Home screen (mood chips + recommendations)
-    │   │   ├── search.tsx                ← Search screen (NL search + quick filters)
+    │   │   ├── search.tsx                ← Search screen (NL input + quick filters)
     │   │   ├── browse.tsx                ← Browse by artist / raga
-    │   │   └── profile.tsx               ← Google sign-in / sign-out
-    │   └── player/[videoId].tsx          ← YouTube video player screen
+    │   │   └── profile.tsx               ← Google sign-in/out + Privacy Policy link
+    │   ├── auth/
+    │   │   └── callback.tsx              ← OAuth deep-link handler (NEW)
+    │   ├── player/
+    │   │   └── [videoId].tsx             ← YouTube video player
+    │   └── privacy.tsx                   ← Privacy Policy screen (NEW)
+    ├── assets/
+    │   ├── icon.png                      ← PLACEHOLDER — replace with 1024×1024 PNG
+    │   ├── adaptive-icon.png             ← PLACEHOLDER — replace with 1024×1024 PNG
+    │   ├── splash-icon.png               ← PLACEHOLDER — replace with 200×200 PNG
+    │   ├── favicon.png                   ← PLACEHOLDER — replace with 64×64 PNG
+    │   ├── icon.svg                      ← Source design for app icon (NEW)
+    │   └── splash.svg                    ← Source design for splash screen (NEW)
     ├── components/
-    │   └── VideoCard.tsx                 ← Reusable video thumbnail card (16:9)
+    │   └── VideoCard.tsx                 ← Full-width 16:9 thumbnail card
     ├── hooks/
-    │   └── useAuth.ts                    ← Google OAuth + Supabase session hook
-    └── lib/
-        ├── supabase.ts                   ← Supabase JS client init
-        ├── api.ts                        ← All API calls (Edge Functions + DB queries)
-        └── theme.ts                      ← YouTube dark-mode colour palette
+    │   └── useAuth.ts                    ← Google OAuth + Supabase session
+    ├── lib/
+    │   ├── supabase.ts                   ← Supabase client (reads EXPO_PUBLIC_ env vars)
+    │   ├── api.ts                        ← All API calls (search, recommend, browse)
+    │   └── theme.ts                      ← YouTube dark-mode colour palette (YT.*)
+    └── scripts/
+        └── generate-icons.js             ← Writes icon.svg + splash.svg to assets/
 ```
 
 ---
@@ -116,54 +193,73 @@ carnatic-app/
 - **Project ID:** `lyvbiiogdaoeawakoxgf`
 - **Project URL:** `https://lyvbiiogdaoeawakoxgf.supabase.co`
 - **Dashboard:** [supabase.com/dashboard/project/lyvbiiogdaoeawakoxgf](https://supabase.com/dashboard/project/lyvbiiogdaoeawakoxgf)
-- **Keys:** Settings → API in the dashboard
+- **Keys** (in Settings → API):
   - `SUPABASE_URL` = `https://lyvbiiogdaoeawakoxgf.supabase.co`
-  - `SUPABASE_ANON_KEY` = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` (in `.env`)
-  - `SUPABASE_SERVICE_ROLE_KEY` = secret, in `.env`, **never commit**
-- **CLI auth:** Needs a Personal Access Token from [supabase.com/dashboard/account/tokens](https://supabase.com/dashboard/account/tokens) (format: `sbp_...`)
+  - `SUPABASE_ANON_KEY` = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` (safe to embed in app)
+  - `SUPABASE_SERVICE_ROLE_KEY` = **SECRET — never commit; only used in Edge Functions**
+- **CLI auth:** Personal Access Token from [supabase.com/dashboard/account/tokens](https://supabase.com/dashboard/account/tokens) (format: `sbp_...`)
 - **Plan:** Free tier (500 MB DB, 500K edge function calls/month)
-- **PostgreSQL version:** 17
+- **PostgreSQL version:** 17 (important — `config.toml` must say `db.major_version = 17`)
 
 ### 2. YouTube Data API v3
-- **Console:** [console.cloud.google.com](https://console.cloud.google.com) → Project: "carnatic-app" (or similar)
+- **Console:** [console.cloud.google.com](https://console.cloud.google.com) → Project: carnatic-app
 - **Key:** stored as `YOUTUBE_API_KEY` in `.env` and in Supabase secrets
-- **Daily quota:** 10,000 units (free). Quota increase request submitted — awaiting approval.
-- **Quota cost:** search.list = 100 units per call; videos.list = 1 unit per call
-- **Key API endpoints used:**
-  - `search.list` — find videos by channel or keyword
-  - `videos.list` — fetch video details (duration, view count)
-  - `playlistItems.list` — list uploads from a channel's uploads playlist
+- **Daily quota:** 10,000 units (free). Quota increase request submitted — awaiting Google approval.
+- **Quota cost per operation:**
+  - `search.list` = 100 units per call
+  - `videos.list` = 1 unit per call
+  - `playlistItems.list` = 1 unit per page
 
 ### 3. Groq (LLM for search intent parsing)
 - **Console:** [console.groq.com](https://console.groq.com)
 - **Key:** stored as `GROQ_API_KEY` in `.env` and Supabase secrets
-- **Current plan:** Dev (upgraded from free) — higher rate limits
-- **Model in use:** `llama-3.3-70b-versatile` (70B, better quality than 8B)
+- **Current plan:** Dev tier (upgraded from free) — higher rate limits
+- **Model:** `llama-3.3-70b-versatile` (upgraded from llama-3.1-8b for better quality)
 - **Used in:** `backend/supabase/functions/search/index.ts`
-- **API:** OpenAI-compatible at `https://api.groq.com/openai/v1/chat/completions`
+- **API base:** `https://api.groq.com/openai/v1/chat/completions` (OpenAI-compatible)
 
-### 4. Google OAuth (for user login)
+### 4. Google Cloud — OAuth (for user login)
 - **Console:** [console.cloud.google.com](https://console.cloud.google.com) → APIs & Services → Credentials
-- **Current state:** OAuth client created for web; mobile client (`GOOGLE_CLIENT_ID`) needs to be added to Supabase Auth settings
-- **Needed for mobile:**
-  - iOS: OAuth client for iOS app (needs bundle ID from `app.json`)
-  - Android: OAuth client for Android (needs SHA-1 fingerprint from keystore)
-  - Add both client IDs to Supabase: Auth → Providers → Google
+- **Current state:** OAuth consent screen configured; OAuth client exists for web
+- **⚠️ STILL NEEDED before login works on real devices:**
+  - Create iOS OAuth client (bundle ID: `com.carnaticapp.music`)
+  - Create Android OAuth client (package: `com.carnaticapp.music` + SHA-1 from `npx eas-cli credentials`)
+  - Add **Authorized redirect URIs** to both clients:
+    - `com.carnaticapp.music://auth/callback`
+    - `https://lyvbiiogdaoeawakoxgf.supabase.co/auth/v1/callback`
+  - In Supabase: Auth → Providers → Google → enable + paste client IDs
+  - Add **Privacy Policy URL** to OAuth consent screen (required for Google to approve it)
 
 ### 5. GitHub (version control)
-- **Repo:** Private, owned by gouthamswaminathan
+- **Repo:** Private — `git@github.com:GoldenHorde42/carnatic-app.git`
 - **Branch:** `main`
-- **Remote:** `git@github.com:gouthamswaminathan/carnatic-app.git`
+- Always push after a session: `git push origin main`
+
+### 6. Expo / EAS (build + distribution) — NOT YET SET UP
+- **Account:** needs to be created at [expo.dev](https://expo.dev)
+- **EAS Project ID:** placeholder in `app.json` — run `npx eas-cli init` to get real ID
+- **Cost:** Free for 30 builds/month (more than enough for personal projects)
+
+### 7. Apple Developer Program — NOT YET SIGNED UP
+- **Cost:** $99/year
+- **Enroll at:** [developer.apple.com/programs](https://developer.apple.com/programs)
+- **Takes:** 24–48 hours for Apple to verify identity
+- **Needed for:** iOS production build + App Store submission
+
+### 8. Google Play Console — NOT YET SIGNED UP
+- **Cost:** $25 one-time
+- **Sign up at:** [play.google.com/console](https://play.google.com/console)
+- **Needed for:** Android store submission
 
 ---
 
 ## Environment Variables
 
-### `.env` (backend — never commit)
+### Backend `.env` (never commit — in `.gitignore`)
 ```
 SUPABASE_URL=https://lyvbiiogdaoeawakoxgf.supabase.co
 SUPABASE_ANON_KEY=eyJ...
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
+SUPABASE_SERVICE_ROLE_KEY=eyJ...  ← SECRET
 YOUTUBE_API_KEY=AIza...
 GROQ_API_KEY=gsk_...
 GOOGLE_CLIENT_ID=...apps.googleusercontent.com
@@ -177,13 +273,14 @@ supabase secrets set \
   GROQ_API_KEY="gsk_..." \
   SUPABASE_SERVICE_ROLE_KEY="eyJ..." \
   --project-ref lyvbiiogdaoeawakoxgf
+
+# Verify:
+supabase secrets list --project-ref lyvbiiogdaoeawakoxgf
 ```
 
-### Mobile `.env` (uses `EXPO_PUBLIC_` prefix for client-safe vars)
-```
-EXPO_PUBLIC_SUPABASE_URL=https://lyvbiiogdaoeawakoxgf.supabase.co
-EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJ...
-```
+### Mobile env vars
+The mobile app reads from `EXPO_PUBLIC_` environment variables, with hardcoded fallbacks in `lib/supabase.ts` so Expo Go development still works.
+In production, these are injected via the `env` blocks in `eas.json` — no manual `.env` file needed for EAS builds.
 
 ---
 
@@ -191,10 +288,10 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 
 ### Supabase CLI
 ```bash
-# Authenticate (token from supabase.com/dashboard/account/tokens → format: sbp_...)
+# Authenticate (Personal Access Token, format: sbp_...)
 supabase login
 
-# Link local repo to live project
+# Link local repo to live project (run from backend/)
 cd backend && supabase link --project-ref lyvbiiogdaoeawakoxgf
 
 # Deploy an Edge Function
@@ -205,32 +302,28 @@ supabase functions deploy recommend --project-ref lyvbiiogdaoeawakoxgf
 # Push a new DB migration
 supabase db push
 
-# Mark old migrations as already applied (only needed if migration was run manually in dashboard)
+# Mark old migrations as already applied (only if they were applied manually via dashboard)
 supabase migration repair --status applied 001
 supabase migration repair --status applied 002
 supabase migration repair --status applied 003
 ```
 
-### Video seeding (run when YouTube quota resets at midnight Pacific)
+### Video seeding
 ```bash
-# Full seed — fetches up to 50 videos per artist (uses ~6,600 quota units)
+# Full seed — fetches up to 50 videos per artist (~6,600 quota units total)
 curl -X POST "https://lyvbiiogdaoeawakoxgf.supabase.co/functions/v1/fetch-videos?seed=true" \
   -H "Authorization: Bearer <SUPABASE_ANON_KEY>"
 
-# Incremental — fetches videos from last N days (for daily cron)
+# Incremental — only videos from last N days (use for daily cron)
 curl -X POST "https://lyvbiiogdaoeawakoxgf.supabase.co/functions/v1/fetch-videos?days=3" \
+  -H "Authorization: Bearer <SUPABASE_ANON_KEY>"
+
+# Single artist (for debugging)
+curl -X POST "https://lyvbiiogdaoeawakoxgf.supabase.co/functions/v1/fetch-videos?artist=T.M.+Krishna" \
   -H "Authorization: Bearer <SUPABASE_ANON_KEY>"
 ```
 
-### Mobile app
-```bash
-cd mobile
-npm install
-npx expo start          # Start dev server — scan QR with Expo Go (disable VPN first!)
-npx expo start --clear  # Clear Metro cache (use after installing new native packages)
-```
-
-### Test the search function directly
+### Test search
 ```bash
 curl -X POST "https://lyvbiiogdaoeawakoxgf.supabase.co/functions/v1/search" \
   -H "Authorization: Bearer <SUPABASE_ANON_KEY>" \
@@ -238,85 +331,127 @@ curl -X POST "https://lyvbiiogdaoeawakoxgf.supabase.co/functions/v1/search" \
   -d '{"query": "Bombay Jayashri", "limit": 5}'
 ```
 
+### Mobile app (development)
+```bash
+cd mobile
+npm install
+npx expo start           # Start dev server — scan QR with Expo Go app
+                         # ⚠️ MUST DISABLE VPN before scanning QR
+npx expo start --clear   # Clear Metro cache (use after installing new native packages)
+```
+
+### EAS Build (once accounts are set up)
+```bash
+cd mobile
+npx eas-cli login                   # log into Expo account
+npx eas-cli init                    # creates EAS project ID — paste it into app.json
+
+# Production builds (run in cloud, no Xcode/Android Studio needed)
+npx eas-cli build --platform ios --profile production
+npx eas-cli build --platform android --profile production
+
+# Submit to stores
+npx eas-cli submit --platform ios
+npx eas-cli submit --platform android
+```
+
 ---
 
-## Database Tables (current state)
+## Database Tables
 
-| Table | Rows | Purpose |
-|-------|------|---------|
+| Table | Rows (approx) | Purpose |
+|-------|---------------|---------|
 | `artists` | 66 | Curated Carnatic artists with YouTube channel IDs |
-| `ragas` | 120 | Carnatic ragas with aliases and melakarta info |
-| `videos` | 641 | YouTube videos (fetched + cached) |
-| `profiles` | 0 | User profiles (populated on first Google login) |
-| `watch_history` | 0 | Per-user watch history (populated on video play) |
+| `ragas` | 120 | Carnatic ragas (72 melakartas + 48 janya) |
+| `videos` | ~641 | YouTube videos fetched and cached |
+| `profiles` | 0 | User profiles — populated on first Google login |
+| `watch_history` | 0 | Per-user watch history — populated on video play |
 | `playlists` | 0 | User playlists |
 | `playlist_videos` | 0 | Videos in playlists |
 | `teacher_students` | 0 | Teacher–student relationships |
 | `fetch_log` | 0 | Log of fetch-videos runs |
 
-### Key columns to know
+### Key columns
 ```sql
--- artists
-youtube_channel_id  -- YouTube channel ID (Tier 1 fetch)
+-- artists table
+youtube_channel_id  -- YouTube channel ID (used in Tier 1 fetch)
 fetch_strategy      -- 'channel' | 'sabha_search' | 'global_search'
-search_aliases      -- text[] — alternate names for deceased artists
-is_deceased         -- bool — triggers broader archival search
+search_aliases      -- text[] — alternate names (e.g. deceased artists with stage names)
+is_deceased         -- bool — triggers Tier 3 archival search
 
--- videos
+-- videos table
 youtube_video_id    -- e.g. "dQw4w9WgXcQ"
-artist_name         -- denormalized from artists table
-raga                -- null for most; 33 videos tagged so far
+artist_name         -- denormalized from artists
+raga                -- null for most; ~33 tagged currently
+tala                -- null for most
+composer            -- e.g. "Tyagaraja", "Muthuswami Dikshitar"
 is_visible          -- bool — false hides from app
-view_count          -- cached from YouTube; used for sorting
+view_count          -- cached from YouTube; used for result ranking
+fetch_strategy      -- which tier fetched this video
 ```
 
 ---
 
-## Architecture: How the App Works
+## How the App Works (Architecture)
 
 ```
 User opens app
     ↓
 Home screen → calls /recommend Edge Function
-    → if logged in:  looks at watch_history → finds top artists/ragas → returns similar videos
-    → if anonymous:  returns top 20 videos by view_count
+    → if logged in: looks at watch_history → finds top artists/ragas → returns similar videos
+    → if anonymous: returns top 20 videos ordered by view_count DESC
 
-User types in Search
+User types a search query
     ↓
-/search Edge Function
+search/index.ts Edge Function
     ↓
-1. Pre-parser (deterministic, ~30 known artist names + 16 mood keywords)
-   → if match: returns intent instantly (no LLM, no latency)
-2. If no pre-parser match: Groq llama-3.3-70b-versatile (2× retry, 5s timeout)
-   → returns structured intent: { artist, raga, ragas[], mood, tala, composer }
-3. DB query on videos table with intent filters
-4. If 0 results: broad fallback — searches longest term in title + artist_name
-    ↓
-Returns sorted by view_count DESC
+Step 1 — Deterministic pre-parser (zero latency, no LLM)
+  Handles: ~30 known artist names, 16 mood keywords, common instruments
+  e.g. "ranjani gayatri" → { artist: "Ranjani Gayatri" }   (bypasses Groq)
+  e.g. "melancholic"     → { ragas: ["Bhairavi","Sahana"] } (bypasses Groq)
 
-User taps video
+Step 2 — If no pre-parser match: Groq llama-3.3-70b-versatile
+  2× retry with 5s timeout
+  Returns structured intent JSON: { artist, raga, ragas[], mood, tala, composer, instrument }
+
+Step 3 — DB query on videos table using intent
+  - artist_name ilike filter (NOTE: use .ilike(), NOT .or() — dots in names break .or())
+  - raga filter
+  - composer filter
+  - Results ordered by view_count DESC
+
+Step 4 — If 0 results: broad fallback
+  Searches title + artist_name with OR across all extracted terms (keywords, composer, raga name)
     ↓
-Player screen → react-native-youtube-iframe embeds YouTube player
-    → logs to watch_history (if logged in)
-    → YouTube ads play normally (ToS compliant)
+Returns JSON array of videos to mobile app
+
+User taps a video
+    ↓
+Player screen → react-native-youtube-iframe embeds YouTube
+    → YouTube ads play normally (required by ToS — do NOT block ads)
+    → Logs to watch_history table (if logged in)
 ```
 
 ---
 
 ## Search Function: Critical Gotchas
 
-1. **PostgREST `.or()` with dotted names silently fails.**  
-   `query.or("artist_name.ilike.%T.M. Krishna%")` — the dots in `T.M.` are parsed as field separators.  
-   **Fix:** Always use `query.ilike("artist_name", "%T.M. Krishna%")` for artist name filtering.
+1. **PostgREST `.or()` silently fails with dots in strings.**
+   `query.or("artist_name.ilike.%T.M. Krishna%")` — the dots in `T.M.` are treated as field separators.
+   **Fix:** Always use `query.ilike("artist_name", "%T.M. Krishna%")` directly.
 
-2. **Groq is non-deterministic for short queries** ("TM Krishna" sometimes returns keywords, not artist).  
-   **Fix:** The pre-parser handles all 30 known artists deterministically before hitting Groq.
+2. **Groq is non-deterministic for short artist names.**
+   "TM Krishna" sometimes returns keywords array instead of artist field.
+   **Fix:** Pre-parser handles all 30 known artists before hitting Groq.
 
-3. **`video_type` column is mostly null** — DO NOT filter on it or results will be 0.  
-   Most videos fetched via YouTube have `video_type = 'other'` (default). The LLM still extracts this field from queries but we intentionally ignore it in the DB query.
+3. **`video_type` column is mostly null — DO NOT filter on it.**
+   Most videos have `video_type = 'other'` (default insert). The LLM may suggest this filter but it must be ignored.
 
-4. **Mood search requires raga tagging** to work well. Currently only 33/641 videos have `raga` set.  
-   The mood fallback also searches raga names in video *titles* as a workaround. Will improve as more videos get tagged.
+4. **Mood search quality is limited by raga tagging.**
+   Only ~33/641 videos have `raga` set. Mood fallback also searches raga names in video titles as a workaround.
+
+5. **Search results are ordered by `view_count DESC`.**
+   This surfaces the most popular videos. Do not change to `published_at` — it shows obscure recent videos first.
 
 ---
 
@@ -325,50 +460,106 @@ Player screen → react-native-youtube-iframe embeds YouTube player
 ```
 For each artist in artists table:
 
-Tier 1 — artist has youtube_channel_id:
+Tier 1 — artist has youtube_channel_id (fetch_strategy = 'channel'):
   → YouTube playlistItems.list on their uploads playlist
-  → Gets their own uploaded content
-  → Most reliable, 1 unit per page
+  → Gets all videos the artist uploaded themselves
+  → Most reliable; costs 1 unit per page of results
 
-Tier 2 — artist has no channel (or fetch_strategy = 'sabha_search'):
-  → YouTube search.list restricted to trusted sabha channels:
-    Music Academy Madras, Brahma Gana Sabha, Narada Gana Sabha,
-    Kartik Fine Arts, Carnatica, Manorama Music
-  → 100 units per search
+Tier 2 — artist without own channel (fetch_strategy = 'sabha_search'):
+  → YouTube search.list restricted to these trusted sabha channel IDs:
+      Music Academy Madras, Brahma Gana Sabha, Narada Gana Sabha,
+      Kartik Fine Arts, Carnatica, Manorama Music
+  → Searches for artist name within those channels only
+  → Costs 100 units per search
 
 Tier 3 — deceased/archival artist (is_deceased = true OR fetch_strategy = 'global_search'):
-  → Global YouTube search with search_aliases
-  → Strict title filtering to avoid non-Carnatic results
-  → 100 units per search
+  → Global YouTube search using search_aliases
+  → Strict title filtering to exclude non-Carnatic results
+  → Costs 100 units per search
 ```
 
-**Quota mode:**
-- `?seed=true` — 50 videos per artist, no date filter (initial load, ~6,600 units)
-- `?days=N` — only videos from last N days (daily cron, much lower quota)
-- `?artist=name` — single artist only (debugging)
+**Fetch modes:**
+- `?seed=true` — up to 50 videos per artist, no date filter (use for initial load)
+- `?days=N` — only videos from last N days (use for daily cron; much lower quota)
+- `?artist=name` — single artist only (use for debugging)
 
 ---
 
-## Pending Setup Tasks (needed before App Store)
+## Pending Work: Before App Store Submission
 
-### 1. Google OAuth for Mobile — REQUIRED for login to work on real devices
-```
-Google Cloud Console → APIs & Services → Credentials → Create OAuth Client
-  → iOS: Application type = iOS, Bundle ID = com.gouthamswaminathan.carnaticapp
-  → Android: Application type = Android, Package = com.gouthamswaminathan.carnaticapp
-              SHA-1 = from `eas credentials` after configuring EAS
-Then:
-  Supabase Dashboard → Auth → Providers → Google
-  → Add both client IDs
-  → Add redirect URL: com.gouthamswaminathan.carnaticapp://auth/callback
+### MUST-DO (blocking)
+
+**1. Create Expo account + EAS Project ID**
+```bash
+# Sign up at expo.dev, then:
+cd mobile
+npx eas-cli login
+npx eas-cli init
+# Paste the generated projectId into mobile/app.json → extra.eas.projectId
 ```
 
-### 2. Daily Cron Job — keeps video library fresh
+**2. Create app icon PNGs**
+- Open `mobile/assets/icon.svg` in a browser
+- Export / screenshot at 1024×1024 → save as `mobile/assets/icon.png`
+- Copy the same file to `mobile/assets/adaptive-icon.png`
+- Create a simpler 200×200 version → save as `mobile/assets/splash-icon.png`
+- Or use Figma (free) for a proper design
+
+**3. Host Privacy Policy at a public URL**
+Easiest option — GitHub Pages:
+1. In the GitHub repo, create `docs/privacy.html` (copy the text from `mobile/app/privacy.tsx`)
+2. Go to repo Settings → Pages → Source: `main` branch, `/docs` folder → Save
+3. URL will be: `https://goldenhorde42.github.io/carnatic-app/privacy`
+4. Paste this URL into:
+   - `mobile/app.json` → add `"privacyPolicyUrl": "https://..."`
+   - Google Cloud Console → OAuth consent screen → Privacy Policy URL
+   - App Store Connect → App Information → Privacy Policy URL
+   - Google Play Console → Store listing → Privacy Policy
+
+**4. Configure Google OAuth for mobile**
+```
+Google Cloud Console → APIs & Services → Credentials → "+ Create Credentials" → OAuth client ID
+
+Create #1 — iOS:
+  Application type: iOS
+  Bundle ID: com.carnaticapp.music
+  → Copy the client ID
+
+Create #2 — Android:
+  Application type: Android
+  Package name: com.carnaticapp.music
+  SHA-1 certificate fingerprint: get this by running:
+    cd mobile && npx eas-cli credentials
+  → Copy the client ID
+
+Then in Supabase Dashboard → Auth → Providers → Google:
+  → Enable Google provider
+  → Paste iOS client ID
+  → Paste Android client ID
+  → Add redirect URL: com.carnaticapp.music://auth/callback
+
+Also add to both OAuth clients' "Authorized redirect URIs":
+  → com.carnaticapp.music://auth/callback
+  → https://lyvbiiogdaoeawakoxgf.supabase.co/auth/v1/callback
+```
+
+**5. Apple Developer Account ($99/year)**
+- Enroll at [developer.apple.com/programs](https://developer.apple.com/programs) → Individual
+- Takes 24–48 hours for identity verification
+- After approval: App Store Connect → new app → Bundle ID: `com.carnaticapp.music`
+
+**6. Google Play Developer Account ($25 one-time)**
+- Sign up at [play.google.com/console](https://play.google.com/console)
+- Takes a few hours to activate
+
+### SHOULD-DO (before launch, not blocking)
+
+**7. Set up daily video refresh cron job**
+Run this SQL in Supabase Dashboard → SQL Editor:
 ```sql
--- Run in Supabase SQL editor (requires pg_cron extension, already available on Supabase)
 SELECT cron.schedule(
   'daily-fetch-videos',
-  '0 6 * * *',   -- 6 AM UTC daily (midnight Pacific)
+  '0 6 * * *',   -- 6 AM UTC = midnight Pacific
   $$
   SELECT net.http_post(
     url := 'https://lyvbiiogdaoeawakoxgf.supabase.co/functions/v1/fetch-videos?days=2',
@@ -378,50 +569,22 @@ SELECT cron.schedule(
 );
 ```
 
-### 3. Groq API key in Supabase Secrets — verify it's set
+**8. Prepare App Store listing assets**
+- Screenshots: iPhone 6.9" (1320×2868) and iPhone 6.5" (1284×2778) — minimum 2 required
+- Short description (30 chars for iOS): "Carnatic music for students"
+- Subtitle (30 chars): "Ragas · Artists · Mood search"
+- Full description (~4000 chars)
+- Keywords (100 chars max): "carnatic,classical,music,raga,veena,violin,flute,mridangam,india"
+- Category: Music
+- Age rating: 4+ (no mature content)
+
+**9. LLM enrichment pass on videos**
+Only ~33 of 641 videos have `raga` tagged. After the YouTube quota increase is approved:
 ```bash
-supabase secrets list --project-ref lyvbiiogdaoeawakoxgf
-# Should show GROQ_API_KEY, YOUTUBE_API_KEY, SUPABASE_SERVICE_ROLE_KEY
+# Query all videos where raga IS NULL and title contains raga-like words
+# Run through Groq to extract raga, tala, composer from title
+# This will significantly improve mood search and recommendations
 ```
-
----
-
-## Publishing Checklist (Next Major Milestone)
-
-### One-time accounts
-- [ ] Apple Developer Program — $99/year at [developer.apple.com/programs](https://developer.apple.com/programs)
-- [ ] Google Play Console — $25 one-time at [play.google.com/console](https://play.google.com/console)
-
-### Assets to create
-- [ ] App icon: 1024×1024 PNG, no alpha, no rounded corners (EAS handles resizing)
-- [ ] Splash screen: 1284×2778 PNG
-- [ ] Screenshots: iPhone 6.5" (1284×2778), iPhone 5.5" (1242×2208) + Android 16:9
-- [ ] Short description (80 chars): "Carnatic music discovery app for students and teachers"
-- [ ] Full description (~4000 chars)
-- [ ] Privacy Policy URL (required) — simple page, can host on GitHub Pages
-
-### Build & Submit with EAS
-```bash
-npm install -g eas-cli
-cd mobile
-eas login          # Expo account login
-eas build:configure   # creates eas.json
-
-# Production builds (runs in cloud — no Xcode/Android Studio needed)
-eas build --platform ios --profile production
-eas build --platform android --profile production
-
-# Submit
-eas submit --platform ios      # uploads to App Store Connect
-eas submit --platform android  # uploads to Google Play Console
-```
-
-### Legal requirements
-- [x] "Powered by YouTube" shown in app (Home screen footer + Profile screen)
-- [ ] Privacy Policy hosted at a public URL
-- [ ] App description mentions YouTube API usage
-- [ ] Link to YouTube Terms of Service in app's own Terms
-- [ ] COPPA note: app collects minimal data; under-13 users use anonymously
 
 ---
 
@@ -429,11 +592,15 @@ eas submit --platform android  # uploads to Google Play Console
 
 | Issue | Severity | Fix |
 |-------|----------|-----|
-| Only 33/641 videos have raga metadata | Medium | Run LLM enrichment pass on all video titles post quota increase |
-| Google OAuth not wired to mobile OAuth clients | High | Set up before app store submission |
-| No daily cron job yet | Medium | SQL snippet above, run in Supabase SQL editor |
-| Bombay Jayashri channel has mostly film/pop content | Low | Add `is_carnatic` filter or manual curation pass |
-| `fetch_log` table is empty | Low | The edge function currently doesn't insert logs (race condition with timeout) |
+| Only ~33/641 videos have raga metadata | Medium | LLM enrichment pass on video titles (post quota increase) |
+| Google OAuth not wired to mobile OAuth clients | **High** | See Step 4 in Pending Work above |
+| No daily cron job yet | Medium | SQL snippet in §Pending Work #7 |
+| EAS Project ID is a placeholder in app.json | **High** | Run `npx eas-cli init` |
+| App icon is Expo placeholder | High (store submission) | Export icon.svg to 1024×1024 PNG |
+| Privacy policy not at a public URL | **High** (blocks Google OAuth + stores) | GitHub Pages (see Step 3) |
+| `fetch_log` table always empty | Low | Edge function logs timeout before insert; needs async fix |
+| Bombay Jayashri channel has some non-Carnatic content | Low | Add manual `is_visible = false` for irrelevant videos |
+| YouTube quota increase pending | Medium | Submitted to Google; awaiting approval |
 
 ---
 
@@ -441,10 +608,30 @@ eas submit --platform android  # uploads to Google Play Console
 
 | Decision | What we chose | Why |
 |----------|--------------|-----|
-| Mobile framework | React Native + Expo | One codebase for iOS + Android; JS consistency |
+| Mobile framework | React Native + Expo | One codebase for iOS + Android; EAS cloud builds |
 | Backend | Supabase | PostgreSQL + auth + edge functions + generous free tier |
-| Video source | YouTube Data API (not licensed audio) | Always fresh, $0 content cost, massive library |
-| LLM | Groq 70B | Fast inference, generous free tier, OpenAI-compatible |
-| Content strategy | Curated artist list | Quality control — no non-Carnatic content leaks |
+| Video source | YouTube Data API v3 | Always fresh, $0 content cost, massive library |
+| LLM | Groq llama-3.3-70b-versatile | Fast inference, generous free tier, OpenAI-compatible |
+| Content strategy | Curated artist list (66 artists) | Quality control — no non-Carnatic leakage |
 | Auth | Google OAuth via Supabase | Target users already have Google accounts |
-| Monetization | AdMob free tier → premium subscriptions | Low barrier for students, teacher tier pays |
+| App scheme | `com.carnaticapp.music` | Clean, available bundle ID |
+| Monetization (planned) | AdMob free tier → RevenueCat premium | Low barrier for students; teacher tier pays |
+| Ads in player | YouTube native ads, not AdMob | ToS compliance — YouTube player ads are required |
+
+---
+
+## App Store Submission Timeline (Estimated)
+
+| Step | Time needed | Who does it |
+|------|-------------|-------------|
+| Create Apple + Play accounts | 1 hour (+ 24–48h Apple verification) | You |
+| Create icons + screenshots | 2–4 hours | You (Figma/Canva) |
+| Host privacy policy | 30 min | You + agent |
+| Configure Google OAuth for mobile | 30 min | You + agent |
+| EAS init + first iOS build | 20 min setup + 15 min build | Agent + EAS cloud |
+| EAS first Android build | 20 min setup + 10 min build | Agent + EAS cloud |
+| App Store Connect listing | 1–2 hours | You + agent |
+| Google Play listing | 1–2 hours | You + agent |
+| Apple review | 1–3 days | Apple |
+| Google Play review | 3–7 days | Google |
+| **Total elapsed time** | ~1 week | |
