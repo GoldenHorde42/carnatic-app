@@ -103,12 +103,13 @@ All changes committed and pushed to `main` with commit `62c0bc8`.
 ### ⚠️ Partially done
 | Thing | Status | What's left |
 |-------|--------|-------------|
-| Google OAuth login | UI built, hook written, redirect URL updated | Must add OAuth clients in Google Cloud Console for iOS + Android; add bundle ID + SHA-1; configure in Supabase Auth settings |
-| EAS Project ID | `eas.json` has placeholder | Run `npx eas-cli login` then `npx eas-cli init` from `mobile/`; paste the ID into `app.json → extra.eas.projectId` |
+| Google OAuth — Android | ✅ Android client created and wired in | iOS client still needed (requires Apple Team ID — get after Apple Developer enrollment) |
+| iOS OAuth client | Blocked | Create after Apple Developer enrollment; add Team ID + bundle ID `com.carnaticapp.music`; paste iOS client ID into `useAuth.ts → IOS_CLIENT_ID` and `eas.json → EXPO_PUBLIC_IOS_CLIENT_ID` |
+| Supabase Google Auth | Needs Android client ID pasted in | Go to Supabase → Auth → Providers → Google → paste `298276742704-mue9um64sv808up3ehfudct13ma8bbdi.apps.googleusercontent.com` |
 | Recommendations | Logic deployed | Works for logged-in users; anonymous users see popular videos by view_count |
-| Raga tagging | ~33/641 videos tagged | Most videos get raga from title parsing; need LLM enrichment pass |
-| Daily video refresh | SQL migration created (`007_daily_cron.sql`) | Run `007_daily_cron.sql` in Supabase SQL Editor (also enable pg_cron + pg_net extensions first) |
-| GitHub Pages (Privacy Policy) | `docs/privacy.html` committed to repo | Enable GitHub Pages in repo Settings → Pages → branch: main, folder: /docs |
+| Raga tagging | ~33/641 videos tagged | Need LLM enrichment pass after YouTube quota increase is approved |
+| Daily video refresh | SQL migration created (`007_daily_cron.sql`) | Run `007_daily_cron.sql` in Supabase SQL Editor (enable pg_cron + pg_net extensions first) |
+| GitHub Pages (Privacy Policy) | `docs/privacy.html` committed | Enable in repo Settings → Pages → branch: main, folder: /docs |
 
 ### ✅ Done in last session (Feb 2026)
 | Thing | Detail |
@@ -122,13 +123,11 @@ All changes committed and pushed to `main` with commit `62c0bc8`.
 | Auth callback route | `app/auth/callback.tsx` handles Google OAuth deep-link |
 | In-app Privacy Policy | `app/privacy.tsx` — full policy screen, linked from Profile tab |
 
-### ❌ Not started
-- **Step 1:** `npx eas-cli init` — needs interactive terminal (user must run manually)
-- **Step 4:** Google OAuth mobile clients — needs Google Cloud Console UI steps (see §Pending Work)
-- **Step 5:** Apple Developer Account ($99/year) — [developer.apple.com/programs](https://developer.apple.com/programs)
-- **Step 6:** Google Play Console Account ($25 one-time) — [play.google.com/console](https://play.google.com/console)
-- EAS Build (blocked by Steps 1 + 5/6)
-- App Store Connect listing screenshots (need physical device or simulator)
+### ❌ Not started (user must do these — require payment/enrollment)
+- **Step 5:** Apple Developer Account ($99/year) → [developer.apple.com/programs](https://developer.apple.com/programs) — **start today, takes 48h**
+- **Step 6:** Google Play Console Account ($25 one-time) → [play.google.com/console](https://play.google.com/console)
+- EAS Build (blocked by Steps 5/6)
+- App Store Connect listing + screenshots
 - AdMob integration (monetization Phase 2)
 - Premium tier / RevenueCat (monetization Phase 3)
 - Chrome extension
