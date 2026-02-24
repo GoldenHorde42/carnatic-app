@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1284" height="2778" viewBox="0 0 1284 2778">
+  <!-- Background (iPhone 14 Pro Max resolution) -->
+  <rect width="1284" height="2778" fill="#0f0a1e"/>
+  
+  <!-- Centered icon area -->
+  <!-- Red play button -->
+  <polygon points="542,1309 542,1469 702,1389" fill="#FF0000"/>
+  
+  <!-- Circle ring around play button -->
+  <circle cx="622" cy="1389" r="130" fill="none" stroke="#FF0000" stroke-width="4" opacity="0.4"/>
+  
+  <!-- App name below -->
+  <text x="642" y="1590" 
+        font-family="Georgia, serif" 
+        font-size="52" 
+        font-weight="bold"
+        fill="#FFFFFF"
+        text-anchor="middle"
+        letter-spacing="6">CARNATIC</text>
+        
+  <!-- Tagline -->
+  <text x="642" y="1640" 
+        font-family="Arial, sans-serif" 
+        font-size="24"
+        fill="#888888"
+        text-anchor="middle">Classical Music · Curated</text>
+</svg>

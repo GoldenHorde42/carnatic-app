@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="180" fill="#0f0a1e"/>
+  
+  <!-- Outer circle ring (YouTube-style) -->
+  <circle cx="512" cy="480" r="300" fill="none" stroke="#FF0000" stroke-width="8" opacity="0.3"/>
+  
+  <!-- Red play button triangle -->
+  <polygon points="420,340 420,620 680,480" fill="#FF0000"/>
+  
+  <!-- Bottom text: CARNATIC -->
+  <text x="512" y="860" 
+        font-family="Georgia, serif" 
+        font-size="88" 
+        font-weight="bold"
+        fill="#FFFFFF"
+        text-anchor="middle"
+        letter-spacing="8">CARNATIC</text>
+        
+  <!-- Subtle horizontal rule above text -->
+  <line x1="180" y1="780" x2="844" y2="780" stroke="#FF0000" stroke-width="2" opacity="0.6"/>
+</svg>

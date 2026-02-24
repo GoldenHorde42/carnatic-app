@@ -8,6 +8,8 @@
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "scheme": "carnatic",
+    "description": "Discover and explore Carnatic classical music. Search by artist, raga, tala or mood. Curated videos powered by YouTube.",
+    "keywords": ["carnatic", "classical music", "india", "raga", "youtube"],
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -15,15 +17,29 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.carnatic.app"
+      "bundleIdentifier": "com.carnaticapp.music",
+      "buildNumber": "1",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Camera is not used by this app.",
+        "NSMicrophoneUsageDescription": "Microphone is not used by this app.",
+        "NSPhotoLibraryUsageDescription": "Photo library is not used by this app."
+      },
+      "privacyManifests": {
+        "NSPrivacyTracking": false,
+        "NSPrivacyTrackingDomains": [],
+        "NSPrivacyCollectedDataTypes": [],
+        "NSPrivacyAccessedAPITypes": []
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0f0a1e"
       },
-      "package": "com.carnatic.app",
-      "edgeToEdgeEnabled": true
+      "package": "com.carnaticapp.music",
+      "versionCode": 1,
+      "edgeToEdgeEnabled": true,
+      "permissions": []
     },
     "web": {
       "bundler": "metro",
@@ -36,6 +52,13 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "eas": {
+        "projectId": "YOUR_EAS_PROJECT_ID"
+      },
+      "supabaseUrl": "https://lyvbiiogdaoeawakoxgf.supabase.co",
+      "supabaseAnonKey": "YOUR_SUPABASE_ANON_KEY"
     }
   }
 }

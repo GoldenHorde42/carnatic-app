@@ -11,6 +11,15 @@ export default function RootLayout() {
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="auth/callback" />
+        <Stack.Screen
+          name="privacy"
+          options={{
+            presentation: 'modal',
+            headerShown:  false,
+            animation:    'slide_from_bottom',
+          }}
+        />
         <Stack.Screen
           name="player/[videoId]"
           options={{

@@ -23,9 +23,16 @@ export function useAuth() {
   }, [])
 
   const signInWithGoogle = async () => {
+    // Production deep-link uses the bundle identifier scheme
+    // Development (Expo Go) uses the exp:// scheme handled by Supabase
+    const redirectUrl = 'com.carnaticapp.music://auth/callback'
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options:  { redirectTo: 'carnatic://auth/callback' },
+      options:  {
+        redirectTo: redirectUrl,
+        // Skip browser prompt if already signed in
+        queryParams: { prompt: 'select_account' },
+      },
     })
     if (error) throw error
   }

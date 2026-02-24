@@ -27,7 +27,7 @@ const YOUTUBE_API_KEY      = Deno.env.get('YOUTUBE_API_KEY')!
 const YOUTUBE_BASE_URL     = 'https://www.googleapis.com/youtube/v3'
 
 const DAYS_BACK   = 3
-const MAX_RESULTS = 25
+const MAX_RESULTS = 50   // YouTube API max per call — doubles our library at no extra quota cost
 
 // ── Trusted sabha / label channels used for Tier-2 name search ────────────────────────
 // SABHAS: post concerts by many different artists

@@ -89,6 +89,11 @@ export default function ProfileScreen() {
             <Text style={styles.sectionLabel}>Account</Text>
             <View style={styles.section}>
               <MenuItem
+                icon="shield-checkmark-outline"
+                label="Privacy Policy"
+                onPress={() => router.push('/privacy')}
+              />
+              <MenuItem
                 icon="log-out-outline"
                 label="Sign Out"
                 danger
@@ -119,6 +124,10 @@ export default function ProfileScreen() {
             <Text style={styles.skipText}>
               You can still browse and search without an account
             </Text>
+
+            <TouchableOpacity onPress={() => router.push('/privacy')}>
+              <Text style={styles.privacyLink}>Privacy Policy</Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -290,6 +299,12 @@ const styles = StyleSheet.create({
     color:    YT.textTertiary,
     fontSize: 12,
     textAlign: 'center',
+  },
+  privacyLink: {
+    color:    YT.textTertiary,
+    fontSize: 11,
+    textDecorationLine: 'underline',
+    marginTop: 4,
   },
 
   // ── Footer ──
