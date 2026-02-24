@@ -7,7 +7,7 @@
 > - Keep the "Current Status" table and "What Was Done Last Session" section current.
 > - Never let this file fall out of date.
 >
-> **Last updated:** Feb 24, 2026 (App Store Connect + Google Sign In fix session)
+> **Last updated:** Feb 24, 2026 (search-when-logged-in fix; SETUP.md service map added)
 
 ---
 
@@ -31,6 +31,104 @@ recommendations, and (coming soon) teacher tools for playlist assignment.
 
 **GitHub repo:** Private — `git@github.com:GoldenHorde42/carnatic-app.git`  
 **Branch:** `main`
+
+---
+
+---
+
+## ⚠️ Current Release Status (IMPORTANT — read before doing anything)
+
+| Platform | Status | Detail |
+|----------|--------|--------|
+| **iOS** | 🟡 **TestFlight only — NOT live in App Store** | Build 4 in progress (EAS). Screenshots, App Review Info, and App Store submit still pending. |
+| **Android** | 🔴 **Not started** | Google Play Console sign-up pending ($25). Also need a physical Android phone to test + take screenshots. |
+| **YouTube API quota** | 🟡 **10,000 units/day (free tier)** | Quota increase form submitted. Google also requested a demo video (see "Pending Work" below). |
+| **App Store** | 🔴 **Not submitted** | All listing content is filled in App Store Connect, but no submission yet. |
+
+---
+
+## 🗺️ Where Is Everything Configured? (Master Map)
+
+This is a single reference for every external service and exactly where each thing was set up.
+If you're a new agent, check here first before searching consoles blindly.
+
+### Cloudflare — [dash.cloudflare.com](https://dash.cloudflare.com)
+**Account:** Goutham's personal Cloudflare account
+| What | Where in Cloudflare | Detail |
+|------|---------------------|--------|
+| Domain registration | Registrar → `carnaticapp.org` | Purchased here. Auto-renews. |
+| DNS → Netlify | DNS → Records → CNAME `@` → `apex-loadbalancer.netlify.com` | Points the root domain to Netlify for privacy policy hosting |
+| DNS → Netlify www | DNS → Records → CNAME `www` → `sparkly-raindrop-0e77bb.netlify.app` | www redirect |
+| Email forwarding | Email → Email Routing → Rule: `support@carnaticapp.org` → `goutham.swaminathan@rutgers.edu` | Forwards support emails to personal inbox. Had to enable Email Routing manually (was disabled by default). |
+
+### Netlify — [app.netlify.com](https://app.netlify.com)
+**Account:** Goutham's personal Netlify account (free tier)
+| What | Where in Netlify | Detail |
+|------|-----------------|--------|
+| Site | Sites → `sparkly-raindrop-0e77bb` (Site ID: `31c07e19-1225-42eb-b297-565ae45a9787`) | Hosts `docs/` folder from this repo |
+| Custom domain | Site → Domain settings → `carnaticapp.org` | DNS managed on Cloudflare (see above) |
+| Privacy policy URL | Auto-served | `https://carnaticapp.org/privacy.html` — the `docs/privacy.html` file |
+| Deploy command | CLI: `npx netlify-cli deploy --prod --dir=docs --site=31c07e19-1225-42eb-b297-565ae45a9787` | Run from repo root after changing `docs/privacy.html` |
+
+### Google Cloud Console — [console.cloud.google.com](https://console.cloud.google.com)
+**Project:** `carnatic-app` (Project number: `298276742704`)
+| What | Where in Google Cloud | Detail |
+|------|----------------------|--------|
+| YouTube Data API v3 | APIs & Services → Enabled APIs → YouTube Data API v3 | Key stored in Supabase Edge Function secrets and `.env` |
+| YouTube API key | APIs & Services → Credentials → API Keys | Key name: "YouTube Data API Key" |
+| OAuth consent screen | APIs & Services → OAuth consent screen | App name: Carnatic App; Privacy URL: `https://carnaticapp.org/privacy.html` |
+| Android OAuth client | APIs & Services → Credentials → OAuth 2.0 Client IDs | `298276742704-mue9um64sv808up3ehfudct13ma8bbdi.apps.googleusercontent.com` |
+| iOS OAuth client | APIs & Services → Credentials → OAuth 2.0 Client IDs | `298276742704-o8c0k7i2l5fefjdvphdntsvrl8c43pjg.apps.googleusercontent.com` |
+| Quota increase | APIs & Services → YouTube Data API v3 → Quotas → Edit | Form submitted. Google also sent an email requesting a demo video — see "Pending Work". |
+
+### Supabase — [supabase.com/dashboard/project/lyvbiiogdaoeawakoxgf](https://supabase.com/dashboard/project/lyvbiiogdaoeawakoxgf)
+| What | Where in Supabase | Detail |
+|------|------------------|--------|
+| Database tables + RLS | Table Editor / SQL Editor | All 8 tables, migrations 001–007 |
+| Edge Functions deployed | Edge Functions tab | `search`, `fetch-videos`, `recommend` |
+| Edge Function secrets (API keys) | Project Settings → Edge Functions → Secrets | `YOUTUBE_API_KEY`, `GROQ_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY` |
+| Google OAuth provider | Authentication → Providers → Google | Web client ID + secret pasted here. Redirect URL: `carnatic://auth/callback` |
+| Site URL | Authentication → URL Configuration → Site URL | `http://localhost:3000` (dev) |
+| Redirect URLs | Authentication → URL Configuration → Redirect URLs | `carnatic://auth/callback` |
+| Anon key / Service role key | Project Settings → API | Keys used by mobile app and Edge Functions |
+| Daily cron job | SQL Editor → run `007_daily_cron.sql` | Calls `fetch-videos?days=2` at 6 AM UTC daily via pg_cron + pg_net |
+
+### Expo / EAS — [expo.dev/accounts/gouthamswa](https://expo.dev/accounts/gouthamswa)
+| What | Where in EAS | Detail |
+|------|-------------|--------|
+| Project | Projects → `carnatic-app` | EAS Project ID: `b9d3fc2f-75a2-417c-ac06-0008b32a3baa` |
+| Env vars (injected into builds) | `mobile/eas.json` → `env` blocks | `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`, OAuth client IDs |
+| iOS distribution cert | Credentials → iOS → Distribution Certificate | Serial `D9258157D7DE75F72E1E617AADD50D4`, expires Feb 2027 |
+| iOS provisioning profile | Credentials → iOS → Provisioning Profile | ID `2Y3623H4BU`, expires Feb 2027 |
+| Android keystore | Credentials → Android → `Build Credentials qxxqgNzviO` | SHA-1: `29:BA:9E:47:47:B7:C8:CC:22:01:F8:D4:E0:2A:DE:E1:CC:C7:8E:0E` |
+| Builds | Builds tab | Build 3 = search fix. Build 4 in progress = auth anon key fix. |
+
+### Apple App Store Connect — [appstoreconnect.apple.com](https://appstoreconnect.apple.com)
+**Apple ID:** `goutham.swaminathan@rutgers.edu` | **Team ID:** `BUGP3Q42UY`
+| What | Where | Detail |
+|------|-------|--------|
+| App | My Apps → Carnatic App (App ID: `6759589334`) | Created, all listing fields filled |
+| Bundle ID | Certificates, Identifiers & Profiles → Identifiers | `com.carnaticapp.music` |
+| TestFlight | TestFlight tab → Builds | Build 3 installed via TestFlight link |
+| Pricing | App Store → Pricing and Availability | $0.99 |
+| Privacy policy | App Information → Privacy Policy URL | `https://carnaticapp.org/privacy.html` |
+| ⚠️ Screenshots | App Store → 1.0 Prepare for Submission | **PENDING** — must be taken from TestFlight on real iPhone |
+| ⚠️ App Review Info | App Store → 1.0 → App Review Information | **PENDING** |
+| ⚠️ Submission | — | **NOT SUBMITTED** — waiting for screenshots + review info |
+
+### Groq — [console.groq.com](https://console.groq.com)
+| What | Where | Detail |
+|------|-------|--------|
+| API key | API Keys section | Stored in Supabase Edge Function secrets as `GROQ_API_KEY` |
+| Plan | Billing | Dev tier (upgraded from free) |
+| Model in use | Hardcoded in `search/index.ts` | `llama-3.3-70b-versatile` |
+
+### GitHub — [github.com/GoldenHorde42/carnatic-app](https://github.com/GoldenHorde42/carnatic-app)
+| What | Detail |
+|------|--------|
+| Visibility | **Public** — made public so YouTube API team can review code for quota increase |
+| Branch | `main` — always push here |
+| Secrets in repo? | No — all keys are in `.env` (gitignored) and Supabase secrets. `SETUP.md` only has placeholder descriptions, not real key values. |
 
 ---
 
@@ -503,7 +601,48 @@ Tier 3 — deceased/archival artist (is_deceased = true OR fetch_strategy = 'glo
 
 ---
 
-## Pending Work: Before App Store Submission
+## Pending Work
+
+### 🔴 BLOCKING — Must do before App Store goes live
+
+#### A. YouTube API Quota Increase (URGENT)
+The free quota is 10,000 units/day. This limits how many new videos we can fetch.
+A quota increase form was submitted to Google (Feb 2026).
+
+**Google also sent a follow-up email requesting a demo video:**
+> "Please send us a video demonstrating the user experience for searching content and playing videos on both iOS and Android."
+
+**What to do:**
+1. Record a short screen recording (1–3 min) on iPhone (via TestFlight) showing:
+   - Open the app → Home screen
+   - Search for an artist (e.g., "T.M. Krishna") → results appear
+   - Tap a video → YouTube player loads, video plays
+2. Do the same on Android once you have a device (or use an emulator)
+3. Reply to the email from `api-services-team@google.com` with the video attached
+4. **Do NOT submit the app to App Store before doing this** — Google may revoke quota if they can't verify the use case
+
+#### B. Android Setup (Need physical device or emulator)
+- Sign up for Google Play Console at [play.google.com/console](https://play.google.com/console) ($25 one-time)
+- Need a physical Android phone (or Android emulator) to:
+  - Test the app before publishing
+  - Take Play Store screenshots
+  - Verify Google Sign-In works on Android
+- Once enrolled: `npx eas-cli build --platform android --profile production`
+
+#### C. App Store Screenshots
+- Install the latest TestFlight build on your iPhone
+- Take screenshots of: Home screen, Search results, Browse (artists/ragas), Video player
+- Required sizes: iPhone 6.9" (1320×2868) and iPhone 6.5" (1284×2778)
+- Upload in App Store Connect → App Store → 1.0 → Prepare for Submission
+
+#### D. App Review Information
+- Fill in App Store Connect → App Review Information section
+- Add a note: "App uses YouTube embedded player. No login required to browse. Google login is optional for recommendations."
+- Then submit for Apple review
+
+---
+
+## Pending Work: Before App Store Submission (Old section — superseded above)
 
 ### MUST-DO (blocking)
 
@@ -642,17 +781,16 @@ Only ~33 of 641 videos have `raga` tagged. After the YouTube quota increase is a
 
 | Issue | Severity | Status |
 |-------|----------|--------|
-| Only ~33/641 videos have raga metadata | Medium | Pending LLM enrichment pass (post quota increase) |
-| Google OAuth fix deployed | **Fixed** | New build (build 3) in progress — uses `expo-web-browser` OAuth flow |
-| Daily cron job | ✅ Done | Migration `007_daily_cron.sql` applied |
-| EAS Project ID | ✅ Done | `b9d3fc2f-75a2-417c-ac06-0008b32a3baa` |
-| App icons | ✅ Done | Generated from SVG via `scripts/build-icons.js` |
-| Privacy policy | ✅ Done | `https://carnaticapp.org/privacy.html` |
-| `fetch_log` table always empty | Low | Edge function logs timeout before insert; needs async fix |
-| Bombay Jayashri channel has some non-Carnatic content | Low | Add manual `is_visible = false` for irrelevant videos |
-| YouTube quota increase pending | Medium | Submitted to Google; awaiting approval |
-| Google Play Console | Pending | User needs to sign up + pay $25 |
-| Screenshots | Pending | Take via TestFlight on iPhone |
+| **iOS app NOT in App Store** | 🔴 High | TestFlight only. Screenshots + App Review Info needed before submitting. |
+| **Android NOT set up** | 🔴 High | Google Play Console ($25) + physical Android device still needed. |
+| **YouTube demo video not sent to Google** | 🔴 High | Google emailed asking for screen recording of search + video playback on iOS+Android. Reply to `api-services-team@google.com`. |
+| YouTube quota is 10,000/day (free tier) | 🟡 Medium | Quota increase form submitted. Waiting for Google approval. |
+| Only ~33/641 videos have raga metadata | Medium | Pending LLM enrichment pass — do after quota increase approved. |
+| Search failing when logged in | ✅ Fixed (build 4) | Root cause: Supabase client sent user JWT to search function. Fix: always use anon key in `api.ts`. |
+| Watch History / Playlists / Liked Videos crashing | ✅ Fixed (build 4) | Now show "Coming Soon" toast instead of silently failing. |
+| Google OAuth not working in TestFlight | ✅ Fixed (build 3) | Root cause: wrong redirect URL scheme. Fixed in `useAuth.ts`. |
+| `fetch_log` table always empty | Low | Edge function logs time out before insert; needs async fix. |
+| Bombay Jayashri channel has some non-Carnatic content | Low | Add manual `is_visible = false` for irrelevant videos. |
 
 ---
 
