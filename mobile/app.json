@@ -10,6 +10,7 @@
     "scheme": "carnatic",
     "description": "Discover and explore Carnatic classical music. Search by artist, raga, tala or mood. Curated videos powered by YouTube.",
     "keywords": ["carnatic", "classical music", "india", "raga", "youtube"],
+    "privacyPolicyUrl": "https://goldenhorde42.github.io/carnatic-app/privacy",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",

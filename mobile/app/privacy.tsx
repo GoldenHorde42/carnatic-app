@@ -19,7 +19,8 @@ import { Ionicons } from '@expo/vector-icons'
 import { YT } from '../lib/theme'
 
 const LAST_UPDATED = 'February 2026'
-const CONTACT_EMAIL = 'support@carnaticapp.music'  // update when you have a domain
+const CONTACT_EMAIL = 'support@carnaticapp.music'
+const PRIVACY_URL   = 'https://goldenhorde42.github.io/carnatic-app/privacy'
 
 export default function PrivacyPolicy() {
   const router = useRouter()
