@@ -246,21 +246,28 @@ carnatic-app/
 - **Branch:** `main`
 - Always push after a session: `git push origin main`
 
-### 6. Expo / EAS (build + distribution) — NOT YET SET UP
-- **Account:** needs to be created at [expo.dev](https://expo.dev)
-- **EAS Project ID:** placeholder in `app.json` — run `npx eas-cli init` to get real ID
-- **Cost:** Free for 30 builds/month (more than enough for personal projects)
+### 6. Expo / EAS (build + distribution)
+- **Account:** `gouthamswa` at [expo.dev](https://expo.dev)
+- **EAS Project ID:** `b9d3fc2f-75a2-417c-ac06-0008b32a3baa`
+- **Project URL:** [expo.dev/accounts/gouthamswa/projects/carnatic-app](https://expo.dev/accounts/gouthamswa/projects/carnatic-app)
+- **Cost:** Free tier (30 builds/month)
+- **First iOS build:** `0ccf170e-64ad-4731-a817-2d68c1201431` (queued Feb 2026)
 
-### 7. Apple Developer Program — NOT YET SIGNED UP
+### 7. Apple Developer Program
+- **Apple ID:** `goutham.swaminathan@rutgers.edu`
+- **Team ID:** `BUGP3Q42UY`
+- **Provider ID:** `128586132`
+- **Bundle ID:** `com.carnaticapp.music` (registered ✅)
+- **Distribution Certificate:** Serial `D9258157D7DE75F72E1E617AADD50D4` — expires Feb 2027
+- **Provisioning Profile:** ID `2Y3623H4BU` — expires Feb 2027
 - **Cost:** $99/year
-- **Enroll at:** [developer.apple.com/programs](https://developer.apple.com/programs)
-- **Takes:** 24–48 hours for Apple to verify identity
-- **Needed for:** iOS production build + App Store submission
 
-### 8. Google Play Console — NOT YET SIGNED UP
+### 8. Google Play Console
+- **Account:** `gouthamswa@gmail.com`
+- **Package:** `com.carnaticapp.music`
+- **Android Keystore:** `Build Credentials qxxqgNzviO` (stored in EAS cloud)
+- **SHA-1:** `29:BA:9E:47:47:B7:C8:CC:22:01:F8:D4:E0:2A:DE:E1:CC:C7:8E:0E`
 - **Cost:** $25 one-time
-- **Sign up at:** [play.google.com/console](https://play.google.com/console)
-- **Needed for:** Android store submission
 
 ---
 
