@@ -104,19 +104,31 @@ All changes committed and pushed to `main` with commit `62c0bc8`.
 | Thing | Status | What's left |
 |-------|--------|-------------|
 | Google OAuth login | UI built, hook written, redirect URL updated | Must add OAuth clients in Google Cloud Console for iOS + Android; add bundle ID + SHA-1; configure in Supabase Auth settings |
-| EAS Project ID | `eas.json` has placeholder | Run `npx eas-cli init` from `mobile/` to get real ID; paste into `app.json` |
+| EAS Project ID | `eas.json` has placeholder | Run `npx eas-cli login` then `npx eas-cli init` from `mobile/`; paste the ID into `app.json → extra.eas.projectId` |
 | Recommendations | Logic deployed | Works for logged-in users; anonymous users see popular videos by view_count |
 | Raga tagging | ~33/641 videos tagged | Most videos get raga from title parsing; need LLM enrichment pass |
-| Daily video refresh | Edge function ready | Needs cron job SQL to be run in Supabase (see §Cron) |
-| App icon | SVG source created | Export `assets/icon.svg` to 1024×1024 PNG using Figma/Canva/browser |
-| Privacy Policy URL | Screen built in-app | Needs to be hosted at a public URL for Google Cloud and app stores |
+| Daily video refresh | SQL migration created (`007_daily_cron.sql`) | Run `007_daily_cron.sql` in Supabase SQL Editor (also enable pg_cron + pg_net extensions first) |
+| GitHub Pages (Privacy Policy) | `docs/privacy.html` committed to repo | Enable GitHub Pages in repo Settings → Pages → branch: main, folder: /docs |
+
+### ✅ Done in last session (Feb 2026)
+| Thing | Detail |
+|-------|--------|
+| App icons | All 4 PNGs generated (icon, adaptive-icon, splash-icon, favicon) via `scripts/build-icons.js` |
+| Privacy Policy HTML | `docs/privacy.html` — ready to publish via GitHub Pages |
+| Privacy Policy URL | Hardcoded as `https://goldenhorde42.github.io/carnatic-app/privacy` in `app.json` and `privacy.tsx` |
+| Cron job SQL | `backend/supabase/migrations/007_daily_cron.sql` — paste into Supabase SQL Editor |
+| Store listing content | `store-listing.md` — all App Store + Play Store copy, keywords, screenshot guide |
+| EAS `eas.json` | Created with dev/preview/production profiles + env vars |
+| Auth callback route | `app/auth/callback.tsx` handles Google OAuth deep-link |
+| In-app Privacy Policy | `app/privacy.tsx` — full policy screen, linked from Profile tab |
 
 ### ❌ Not started
-- Apple Developer Account ($99/year) — needed before iOS build
-- Google Play Console Account ($25 one-time) — needed before Android submission
-- EAS Build (first production build)
-- App Store Connect listing (screenshots, description)
-- Google Play Console listing
+- **Step 1:** `npx eas-cli init` — needs interactive terminal (user must run manually)
+- **Step 4:** Google OAuth mobile clients — needs Google Cloud Console UI steps (see §Pending Work)
+- **Step 5:** Apple Developer Account ($99/year) — [developer.apple.com/programs](https://developer.apple.com/programs)
+- **Step 6:** Google Play Console Account ($25 one-time) — [play.google.com/console](https://play.google.com/console)
+- EAS Build (blocked by Steps 1 + 5/6)
+- App Store Connect listing screenshots (need physical device or simulator)
 - AdMob integration (monetization Phase 2)
 - Premium tier / RevenueCat (monetization Phase 3)
 - Chrome extension
