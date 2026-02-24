@@ -7,7 +7,7 @@
 > - Keep the "Current Status" table and "What Was Done Last Session" section current.
 > - Never let this file fall out of date.
 >
-> **Last updated:** Feb 2026 (publishing setup session)
+> **Last updated:** Feb 24, 2026 (App Store Connect + Google Sign In fix session)
 
 ---
 
@@ -606,19 +606,53 @@ Only ~33 of 641 videos have `raga` tagged. After the YouTube quota increase is a
 
 ---
 
+## Current App Store Connect Status (Feb 24, 2026)
+
+| Item | Status |
+|------|--------|
+| App created in App Store Connect | ✅ Done — App ID `6759589334` |
+| Bundle ID | ✅ `com.carnaticapp.music` |
+| Age rating | ✅ 4+ |
+| Privacy policy URL | ✅ `https://carnaticapp.org/privacy.html` |
+| Support URL | ✅ `https://carnaticapp.org/privacy.html` |
+| Description + Keywords | ✅ Filled (see `store-listing.md`) |
+| Copyright | ✅ `2026 Goutham Swaminathan` |
+| Pricing | ✅ $0.99 |
+| Build attached | ⏳ Waiting for new build (build 3 in progress) |
+| Screenshots | ⏳ Pending — install via TestFlight, take on device |
+| App Review Information | ⏳ Pending |
+| Submit for review | ⏳ Pending |
+
+## Infrastructure & Credentials
+
+| Service | Details |
+|---------|---------|
+| **Domain** | `carnaticapp.org` — bought on Cloudflare Registrar |
+| **Privacy policy** | `https://carnaticapp.org/privacy.html` — hosted on Netlify (site ID: `31c07e19-1225-42eb-b297-565ae45a9787`) |
+| **Support email** | `support@carnaticapp.org` → forwarded via Cloudflare Email Routing |
+| **Netlify deploy** | `npx netlify-cli deploy --prod --dir=docs --site=31c07e19-1225-42eb-b297-565ae45a9787` |
+| **EAS Project ID** | `b9d3fc2f-75a2-417c-ac06-0008b32a3baa` |
+| **App Store App ID** | `6759589334` |
+| **Apple Team ID** | `BUGP3Q42UY` |
+| **Android OAuth Client** | `298276742704-mue9um64sv808up3ehfudct13ma8bbdi.apps.googleusercontent.com` |
+| **iOS OAuth Client** | `298276742704-o8c0k7i2l5fefjdvphdntsvrl8c43pjg.apps.googleusercontent.com` |
+| **Supabase Redirect URL** | `carnatic://auth/callback` (added to Supabase Auth URL Configuration) |
+
 ## Known Issues & Tech Debt
 
-| Issue | Severity | Fix |
-|-------|----------|-----|
-| Only ~33/641 videos have raga metadata | Medium | LLM enrichment pass on video titles (post quota increase) |
-| Google OAuth not wired to mobile OAuth clients | **High** | See Step 4 in Pending Work above |
-| No daily cron job yet | Medium | SQL snippet in §Pending Work #7 |
-| EAS Project ID is a placeholder in app.json | **High** | Run `npx eas-cli init` |
-| App icon is Expo placeholder | High (store submission) | Export icon.svg to 1024×1024 PNG |
-| Privacy policy not at a public URL | **High** (blocks Google OAuth + stores) | GitHub Pages (see Step 3) |
+| Issue | Severity | Status |
+|-------|----------|--------|
+| Only ~33/641 videos have raga metadata | Medium | Pending LLM enrichment pass (post quota increase) |
+| Google OAuth fix deployed | **Fixed** | New build (build 3) in progress — uses `expo-web-browser` OAuth flow |
+| Daily cron job | ✅ Done | Migration `007_daily_cron.sql` applied |
+| EAS Project ID | ✅ Done | `b9d3fc2f-75a2-417c-ac06-0008b32a3baa` |
+| App icons | ✅ Done | Generated from SVG via `scripts/build-icons.js` |
+| Privacy policy | ✅ Done | `https://carnaticapp.org/privacy.html` |
 | `fetch_log` table always empty | Low | Edge function logs timeout before insert; needs async fix |
 | Bombay Jayashri channel has some non-Carnatic content | Low | Add manual `is_visible = false` for irrelevant videos |
 | YouTube quota increase pending | Medium | Submitted to Google; awaiting approval |
+| Google Play Console | Pending | User needs to sign up + pay $25 |
+| Screenshots | Pending | Take via TestFlight on iPhone |
 
 ---
 
