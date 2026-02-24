@@ -61,10 +61,11 @@ export async function searchVideos(
   limit = 20,
   offset = 0
 ): Promise<SearchResult> {
-  const auth = await authHeader()
-  const res  = await fetch(`${FUNCTIONS_URL}/search`, {
+  // Always use anon key for search — search is public and doesn't need user identity.
+  // Using a user JWT here caused 401s after OAuth login due to PKCE token exchange timing.
+  const res = await fetch(`${FUNCTIONS_URL}/search`, {
     method:  'POST',
-    headers: { 'Authorization': auth, 'Content-Type': 'application/json' },
+    headers: { 'Authorization': `Bearer ${ANON_KEY}`, 'Content-Type': 'application/json' },
     body:    JSON.stringify({ query, limit, offset }),
   })
   if (!res.ok) throw new Error(`Search failed: ${res.status}`)

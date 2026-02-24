@@ -1,10 +1,18 @@
 import {
-  View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert,
+  View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, ToastAndroid, Platform,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useAuth } from '../../hooks/useAuth'
 import { YT } from '../../lib/theme'
+
+const comingSoon = () => {
+  if (Platform.OS === 'android') {
+    ToastAndroid.show('Coming soon!', ToastAndroid.SHORT)
+  } else {
+    Alert.alert('Coming Soon', 'This feature will be available in a future update.')
+  }
+}
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name']
 
@@ -73,15 +81,17 @@ export default function ProfileScreen() {
               <MenuItem
                 icon="time-outline"
                 label="Watch History"
-                onPress={() => router.push('/search?q=my history')}
+                onPress={comingSoon}
               />
               <MenuItem
                 icon="list-outline"
                 label="Playlists"
+                onPress={comingSoon}
               />
               <MenuItem
                 icon="heart-outline"
                 label="Liked Videos"
+                onPress={comingSoon}
               />
             </View>
 
