@@ -1,8 +1,9 @@
 # Carnatic App — Complete Handoff Document
 
 > **For the AI agent reading this:**
-> This file is the single source of truth for the project.
+> This file is the single source of truth for the project. All planning/runbook docs live in the `internal/` folder.
 > - **Read this file first** before doing anything.
+> - Other key files: `internal/CONTEXT.md` (recent session log), `internal/next-steps.md` (roadmap + status), `internal/seed-videos.md` (video ingestion), `internal/push-backend-changes.md`, `internal/push-mobile-changes.md`
 > - **Update this file** at the end of every session with what you changed, what is now done, and anything the next agent needs to know.
 > - Keep the "Current Status" table and "What Was Done Last Session" section current.
 > - Never let this file fall out of date.
@@ -216,7 +217,7 @@ All changes committed and pushed to `main` with commit `62c0bc8`.
 | Privacy Policy HTML | `docs/privacy.html` — ready to publish via GitHub Pages |
 | Privacy Policy URL | Hardcoded as `https://goldenhorde42.github.io/carnatic-app/privacy` in `app.json` and `privacy.tsx` |
 | Cron job SQL | `backend/supabase/migrations/007_daily_cron.sql` — paste into Supabase SQL Editor |
-| Store listing content | `store-listing.md` — all App Store + Play Store copy, keywords, screenshot guide |
+| Store listing content | `internal/store-listing.md` — all App Store + Play Store copy, keywords, screenshot guide |
 | EAS `eas.json` | Created with dev/preview/production profiles + env vars |
 | Auth callback route | `app/auth/callback.tsx` handles Google OAuth deep-link |
 | In-app Privacy Policy | `app/privacy.tsx` — full policy screen, linked from Profile tab |
@@ -237,8 +238,8 @@ All changes committed and pushed to `main` with commit `62c0bc8`.
 
 ```
 carnatic-app/
-├── SETUP.md                              ← This file — update after every session
-├── game-plan.md                          ← Full product design + roadmap
+├── internal/SETUP.md                              ← This file — update after every session
+├── internal/game-plan.md                          ← Full product design + roadmap
 ├── .gitignore
 │
 ├── backend/
@@ -754,7 +755,7 @@ Only ~33 of 641 videos have `raga` tagged. After the YouTube quota increase is a
 | Age rating | ✅ 4+ |
 | Privacy policy URL | ✅ `https://carnaticapp.org/privacy.html` |
 | Support URL | ✅ `https://carnaticapp.org/privacy.html` |
-| Description + Keywords | ✅ Filled (see `store-listing.md`) |
+| Description + Keywords | ✅ Filled (see `internal/store-listing.md`) |
 | Copyright | ✅ `2026 Goutham Swaminathan` |
 | Pricing | ✅ $0.99 |
 | Build attached | ⏳ Waiting for new build (build 3 in progress) |

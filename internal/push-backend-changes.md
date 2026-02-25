@@ -99,9 +99,9 @@ and **will timeout with a 500 error**. For a full seed, see `internal/seed-video
 
 ---
 
-## Step 5 — Update CHANGELOG.md
+## Step 5 — Update internal/CHANGELOG.md
 
-Add an entry at the top of `CHANGELOG.md`:
+Add an entry at the top of `internal/CHANGELOG.md`:
 ```
 ## [Date] — <session title>
 
@@ -113,7 +113,7 @@ Add an entry at the top of `CHANGELOG.md`:
 Then commit:
 ```bash
 cd /Users/gouthamswaminathan/Documents/carnatic-app
-git add CHANGELOG.md
+git add internal/CHANGELOG.md
 git commit -m "docs: update changelog"
 git push origin main
 ```

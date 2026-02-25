@@ -187,4 +187,4 @@ Notable ones: M Balamuralikrishna, T N Seshagopalan, T V Sankaranarayanan, M.L. 
 - `[x]` Fix: fetch-videos 500 timeout — added offset/limit batching
 - `[x]` App Store Connect listing filled (description, keywords, pricing, privacy URL)
 - `[x]` TestFlight external beta testers setup
-- `[x]` CONTEXT.md, SETUP.md, seed-videos.md, push-backend-changes.md, push-mobile-changes.md runbooks created
+- `[x]` internal/CONTEXT.md, internal/SETUP.md, internal/seed-videos.md, internal/push-backend-changes.md, internal/push-mobile-changes.md runbooks created
