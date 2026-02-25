@@ -787,7 +787,7 @@ Only ~33 of 641 videos have `raga` tagged. After the YouTube quota increase is a
 | YouTube quota is 10,000/day (free tier) | 🟡 Medium | Quota increase form submitted. Waiting for Google approval. |
 | Only ~33/641 videos have raga metadata | Medium | Pending LLM enrichment pass — do after quota increase approved. |
 | Search failing when logged in | ✅ Fixed (build 4) | Root cause: Supabase client sent user JWT to search function. Fix: always use anon key in `api.ts`. |
-| Home screen blank when logged in | ✅ Fixed (build 7) | Root cause: same JWT gateway 401 issue, plus queryBase mutation bug in recommend. Fix: anon key + ?userId= param. See `CONTEXT.md`. |
+| Home screen blank when logged in | ✅ Fixed (build 7) | Root cause: same JWT gateway 401 issue, plus queryBase mutation bug in recommend. Fix: anon key + ?userId= param. See `internal/CONTEXT.md`. |
 | Watch History / Playlists / Liked Videos crashing | ✅ Fixed (build 4) | Now show "Coming Soon" toast instead of silently failing. |
 | Google OAuth not working in TestFlight | ✅ Fixed (build 3) | Root cause: wrong redirect URL scheme. Fixed in `useAuth.ts`. |
 | `fetch_log` table always empty | Low | Edge function logs time out before insert; needs async fix. |

@@ -1,6 +1,6 @@
 # Carnatic App — Session Context Log
 
-> **For AI agents:** Read `SETUP.md` first for the full project reference.
+> **For AI agents:** Read `internal/SETUP.md` first for the full project reference.
 > This file captures **what changed each session** and **key learnings** that SETUP.md doesn't cover yet.
 > Append to this file at the end of every session.
 
@@ -41,7 +41,7 @@ The `authHeader()` helper in `api.ts` still exists but is now only used for dire
 
 **Root cause:** Supabase free-tier Edge Functions have a **150-second execution timeout**. Running `?seed=true` on all 66 artists at once takes ~200s → `500 Internal Server Error`.
 
-**Fix:** Added `?offset=N&limit=M` params to `fetch-videos/index.ts` for batched processing. See `seed-videos.md` for how to use.
+**Fix:** Added `?offset=N&limit=M` params to `fetch-videos/index.ts` for batched processing. See `internal/seed-videos.md` for how to use.
 
 **Commit:** `258dc22` — `feat: add offset/limit batching to fetch-videos to prevent timeout`
 
@@ -52,7 +52,7 @@ The `authHeader()` helper in `api.ts` still exists but is now only used for dire
 - **997 total videos** in DB (up from ~641)
 - ~356 new videos added across 4 batches
 - Full batch breakdown logged in Supabase `fetch_log` table
-- See `seed-videos.md` for how to re-run
+- See `internal/seed-videos.md` for how to re-run
 
 ---
 
@@ -88,8 +88,8 @@ The `authHeader()` helper in `api.ts` still exists but is now only used for dire
 | `mobile/lib/api.ts` | `getRecommendations`: use anon key + `?userId=` param | Fix gateway 401 for logged-in users |
 | `backend/supabase/functions/recommend/index.ts` | Read `userId` from query param; remove JWT verification; fix `queryBase` mutation | Fix home screen blank + improve robustness |
 | `backend/supabase/functions/fetch-videos/index.ts` | Add `?offset=N&limit=M` params | Fix 500 timeout on full seed |
-| `seed-videos.md` | **NEW** — full runbook for video ingestion | Prevent future agents from getting stuck on batch/timeout issues |
-| `push-backend-changes.md` | Updated smoke test for `fetch-videos` to use `?limit=1` | Prevent timeout in smoke test |
+| `internal/seed-videos.md` | **NEW** — full runbook for video ingestion | Prevent future agents from getting stuck on batch/timeout issues |
+| `internal/push-backend-changes.md` | Updated smoke test for `fetch-videos` to use `?limit=1` | Prevent timeout in smoke test |
 | `mobile/app.json` | `buildNumber` updated to reflect EAS auto-increment | Keep repo in sync |
 
 ---

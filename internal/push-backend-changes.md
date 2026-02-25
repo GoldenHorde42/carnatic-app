@@ -93,7 +93,7 @@ curl -s --max-time 60 \
 ```
 
 ⚠️ **DO NOT** use `?seed=true` without `&limit=N` — it tries to process all 66 artists at once
-and **will timeout with a 500 error**. For a full seed, see `seed-videos.md`.
+and **will timeout with a 500 error**. For a full seed, see `internal/seed-videos.md`.
 
 ✅ Verify: response contains `totalFound` or `totalAdded`, not an error.
 
