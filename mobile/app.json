@@ -25,7 +25,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.carnaticapp.music",
-      "buildNumber": "2",
+      "buildNumber": "5",
       "infoPlist": {
         "NSCameraUsageDescription": "Camera is not used by this app.",
         "NSMicrophoneUsageDescription": "Microphone is not used by this app.",
