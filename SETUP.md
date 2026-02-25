@@ -59,7 +59,7 @@ If you're a new agent, check here first before searching consoles blindly.
 | Domain registration | Registrar → `carnaticapp.org` | Purchased here. Auto-renews. |
 | DNS → Netlify | DNS → Records → CNAME `@` → `apex-loadbalancer.netlify.com` | Points the root domain to Netlify for privacy policy hosting |
 | DNS → Netlify www | DNS → Records → CNAME `www` → `sparkly-raindrop-0e77bb.netlify.app` | www redirect |
-| Email forwarding | Email → Email Routing → Rule: `support@carnaticapp.org` → `goutham.swaminathan@rutgers.edu` | Forwards support emails to personal inbox. Had to enable Email Routing manually (was disabled by default). |
+| Email forwarding | Email → Email Routing → Rule: `support@carnaticapp.org` → `gouthamswa3@gmail.com` | Forwards support emails to personal inbox. Had to enable Email Routing manually (was disabled by default). |
 
 ### Netlify — [app.netlify.com](https://app.netlify.com)
 **Account:** Goutham's personal Netlify account (free tier)
