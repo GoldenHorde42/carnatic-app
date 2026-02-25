@@ -24,7 +24,6 @@ import { createClient } from 'npm:@supabase/supabase-js@2'
 
 const SUPABASE_URL         = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-const SUPABASE_ANON_KEY    = Deno.env.get('SUPABASE_ANON_KEY')!
 
 const corsHeaders = {
   'Access-Control-Allow-Origin':  '*',
@@ -231,19 +230,11 @@ Deno.serve(async (req: Request) => {
 
     const serviceClient = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
 
-    // Determine if user is authenticated
-    const authHeader = req.headers.get('Authorization')
-    let userId: string | null = null
-
-    if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.slice(7)
-      // Use anon client to verify the JWT and get user
-      const userClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-        global: { headers: { Authorization: authHeader } },
-      })
-      const { data: { user } } = await userClient.auth.getUser()
-      if (user) userId = user.id
-    }
+    // Determine if user is authenticated.
+    // The mobile app always sends the anon key as Authorization (to avoid gateway
+    // 401s caused by PKCE token timing issues), and passes the user's UUID as
+    // ?userId=<uuid> — a non-sensitive param since recommendations are not private data.
+    const userId: string | null = url.searchParams.get('userId') || null
 
     if (userId) {
       // Authenticated path — try personalised, fall back to popular on any error

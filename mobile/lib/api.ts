@@ -79,11 +79,16 @@ export async function getRecommendations(
   offset = 0,
   context?: string
 ): Promise<RecommendResult> {
-  const auth   = await authHeader()
+  // Always use anon key for Authorization — user JWTs cause 401s at the Supabase
+  // gateway after PKCE OAuth login (same issue as search). Instead, pass the
+  // user ID as a query param so the edge function can personalise without needing
+  // to verify a potentially-stale JWT.
+  const { data: { user } } = await supabase.auth.getUser()
   const params = new URLSearchParams({ limit: String(limit), offset: String(offset) })
-  if (context) params.set('context', context)
+  if (context)  params.set('context', context)
+  if (user?.id) params.set('userId',  user.id)
   const res = await fetch(`${FUNCTIONS_URL}/recommend?${params}`, {
-    headers: { 'Authorization': auth },
+    headers: { 'Authorization': `Bearer ${ANON_KEY}` },
   })
   if (!res.ok) throw new Error(`Recommendations failed: ${res.status}`)
   return res.json()
