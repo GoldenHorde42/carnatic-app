@@ -85,13 +85,15 @@ curl -X POST \
 
 ✅ Verify: response contains `videos` array with results, not an error.
 
-Test `fetch-videos` is reachable:
+Test `fetch-videos` is reachable (single artist — avoids 150s timeout):
 ```bash
-curl -X POST \
-  "https://lyvbiiogdaoeawakoxgf.supabase.co/functions/v1/fetch-videos?seed=true" \
-  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5dmJpaW9nZGFvZWF3YWtveGdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4MTAwMDMsImV4cCI6MjA4NzM4NjAwM30.tBBG-L49gDEz67c9kfzoANogbKr3Bb8hXfwq3iH-iq8" \
-  -H "Content-Type: application/json" | head -c 200
+curl -s --max-time 60 \
+  "https://lyvbiiogdaoeawakoxgf.supabase.co/functions/v1/fetch-videos?artist=Sanjay" \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imx5dmJpaW9nZGFvZWF3YWtveGdmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4MTAwMDMsImV4cCI6MjA4NzM4NjAwM30.tBBG-L49gDEz67c9kfzoANogbKr3Bb8hXfwq3iH-iq8"
 ```
+
+⚠️ **DO NOT** use `?seed=true` without `&limit=N` — it tries to process all 66 artists at once
+and **will timeout with a 500 error**. For a full seed, see `seed-videos.md`.
 
 ✅ Verify: response contains `totalFound` or `totalAdded`, not an error.
 
