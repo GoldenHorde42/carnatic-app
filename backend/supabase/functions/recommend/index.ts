@@ -161,18 +161,17 @@ async function personalisedRecommendations(
   // Strategy: OR(raga IN topRagas, artist IN topArtists)
   // Supabase does not support OR across different columns directly,
   // so we run two queries and merge + deduplicate.
-
-  const queryBase = serviceClient
-    .from('videos')
-    .select('*', { count: 'exact' })
-    .eq('is_visible', true)
+  // IMPORTANT: do NOT share a single queryBase object — Supabase query builders
+  // are mutable (.in() modifies in place), so each promise needs its own builder.
 
   const ragaPromise = filterRagas.length
-    ? queryBase.in('raga', filterRagas).order('published_at', { ascending: false }).limit(limit * 2)
+    ? serviceClient.from('videos').select('*').eq('is_visible', true)
+        .in('raga', filterRagas).order('published_at', { ascending: false }).limit(limit * 2)
     : Promise.resolve({ data: [], count: 0, error: null })
 
   const artistPromise = filterArtists.length
-    ? queryBase.in('artist_name', filterArtists).order('published_at', { ascending: false }).limit(limit * 2)
+    ? serviceClient.from('videos').select('*').eq('is_visible', true)
+        .in('artist_name', filterArtists).order('published_at', { ascending: false }).limit(limit * 2)
     : Promise.resolve({ data: [], count: 0, error: null })
 
   const [ragaRes, artistRes] = await Promise.all([ragaPromise, artistPromise])
@@ -247,12 +246,21 @@ Deno.serve(async (req: Request) => {
     }
 
     if (userId) {
-      // Authenticated path
-      const result = await personalisedRecommendations(userId, limit, offset, context, serviceClient)
-      return new Response(
-        JSON.stringify({ ...result, personalised: true }),
-        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      // Authenticated path — try personalised, fall back to popular on any error
+      try {
+        const result = await personalisedRecommendations(userId, limit, offset, context, serviceClient)
+        return new Response(
+          JSON.stringify({ ...result, personalised: true }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      } catch (personalisedErr) {
+        console.error('Personalised recs failed, falling back to popular:', personalisedErr)
+        const result = await anonymousRecommendations(limit, offset, context, serviceClient)
+        return new Response(
+          JSON.stringify({ ...result, personalised: false }),
+          { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
     } else {
       // Anonymous path
       const result = await anonymousRecommendations(limit, offset, context, serviceClient)
