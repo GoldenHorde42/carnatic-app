@@ -7,7 +7,7 @@
 > - Keep the "Current Status" table and "What Was Done Last Session" section current.
 > - Never let this file fall out of date.
 >
-> **Last updated:** Feb 24, 2026 (search-when-logged-in fix; SETUP.md service map added)
+> **Last updated:** Feb 25, 2026 (recommend fix; video ingestion batching; Build #7 submitted to TestFlight)
 
 ---
 
@@ -40,7 +40,7 @@ recommendations, and (coming soon) teacher tools for playlist assignment.
 
 | Platform | Status | Detail |
 |----------|--------|--------|
-| **iOS** | 🟡 **TestFlight only — NOT live in App Store** | Build 4 in progress (EAS). Screenshots, App Review Info, and App Store submit still pending. |
+| **iOS** | 🟡 **TestFlight only — NOT live in App Store** | Build 7 submitted to TestFlight. Screenshots, App Review Info, and App Store submit still pending. |
 | **Android** | 🔴 **Not started** | Google Play Console sign-up pending ($25). Also need a physical Android phone to test + take screenshots. |
 | **YouTube API quota** | 🟡 **10,000 units/day (free tier)** | Quota increase form submitted. Google also requested a demo video (see "Pending Work" below). |
 | **App Store** | 🔴 **Not submitted** | All listing content is filled in App Store Connect, but no submission yet. |
@@ -787,6 +787,7 @@ Only ~33 of 641 videos have `raga` tagged. After the YouTube quota increase is a
 | YouTube quota is 10,000/day (free tier) | 🟡 Medium | Quota increase form submitted. Waiting for Google approval. |
 | Only ~33/641 videos have raga metadata | Medium | Pending LLM enrichment pass — do after quota increase approved. |
 | Search failing when logged in | ✅ Fixed (build 4) | Root cause: Supabase client sent user JWT to search function. Fix: always use anon key in `api.ts`. |
+| Home screen blank when logged in | ✅ Fixed (build 7) | Root cause: same JWT gateway 401 issue, plus queryBase mutation bug in recommend. Fix: anon key + ?userId= param. See `CONTEXT.md`. |
 | Watch History / Playlists / Liked Videos crashing | ✅ Fixed (build 4) | Now show "Coming Soon" toast instead of silently failing. |
 | Google OAuth not working in TestFlight | ✅ Fixed (build 3) | Root cause: wrong redirect URL scheme. Fixed in `useAuth.ts`. |
 | `fetch_log` table always empty | Low | Edge function logs time out before insert; needs async fix. |
