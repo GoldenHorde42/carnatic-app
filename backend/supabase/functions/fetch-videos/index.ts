@@ -9,9 +9,11 @@
  *               a whitelist of trusted sabha/label channels
  *
  * Query params:
- *   ?seed=true      no date filter — get latest 25 per artist (initial seed)
+ *   ?seed=true      no date filter — get latest 50 per artist (initial seed)
  *   ?days=N         look back N days (default 3, for daily cron)
  *   ?artist=name    only process artists matching name (debug / single refresh)
+ *   ?offset=N       skip first N artists (for batching, default 0)
+ *   ?limit=N        process at most N artists (for batching, default all)
  *
  * YouTube API quota:
  *   Tier 1: 100 units/artist search + 1 unit/details batch
@@ -401,6 +403,8 @@ Deno.serve(async (req: Request) => {
   const daysBack     = parseInt(url.searchParams.get('days') || String(DAYS_BACK))
   const seedMode     = url.searchParams.get('seed') === 'true'
   const artistFilter = url.searchParams.get('artist')
+  const batchOffset  = parseInt(url.searchParams.get('offset') || '0')
+  const batchLimit   = url.searchParams.get('limit') ? parseInt(url.searchParams.get('limit')!) : null
 
   const publishedAfter = seedMode
     ? null
@@ -418,14 +422,21 @@ Deno.serve(async (req: Request) => {
     artistQuery = artistQuery.ilike('name', `%${artistFilter}%`)
   }
 
-  const { data: artists, error: artistsError } = await artistQuery
+  const { data: allArtists, error: artistsError } = await artistQuery
 
-  if (artistsError || !artists) {
+  if (artistsError || !allArtists) {
     return new Response(
       JSON.stringify({ error: 'Failed to fetch artists', details: artistsError?.message }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
   }
+
+  // Apply batching slice (offset + limit) before processing
+  const artists = batchLimit !== null
+    ? allArtists.slice(batchOffset, batchOffset + batchLimit)
+    : allArtists.slice(batchOffset)
+
+  console.log(`Processing ${artists.length} of ${allArtists.length} artists (offset=${batchOffset}, limit=${batchLimit ?? 'all'})`)
 
   const tier1Artists = artists.filter(a => a.fetch_strategy === 'channel' && a.youtube_channel_id)
   const tier2Artists = artists.filter(a => a.fetch_strategy === 'sabha_search')
@@ -465,7 +476,14 @@ Deno.serve(async (req: Request) => {
 
   const summary = {
     success: true,
-    artists: { total: artists.length, tier1: tier1Artists.length, tier2: tier2Artists.length, tier3: tier3Artists.length },
+    artists: {
+      total:        allArtists.length,
+      processed:    artists.length,
+      offset:       batchOffset,
+      tier1:        tier1Artists.length,
+      tier2:        tier2Artists.length,
+      tier3:        tier3Artists.length,
+    },
     totalFound, totalAdded,
     quotaUsed: `${totalUnits} / 10000 daily units`,
     results,
