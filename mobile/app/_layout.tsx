@@ -28,6 +28,22 @@ export default function RootLayout() {
             animation:      'slide_from_bottom',
           }}
         />
+        <Stack.Screen
+          name="history"
+          options={{
+            presentation: 'card',
+            headerShown:  false,
+            animation:    'slide_from_right',
+          }}
+        />
+        <Stack.Screen
+          name="liked"
+          options={{
+            presentation: 'card',
+            headerShown:  false,
+            animation:    'slide_from_right',
+          }}
+        />
       </Stack>
     </>
   )

@@ -4,9 +4,10 @@ import {
   StyleSheet, Dimensions, ActivityIndicator,
 } from 'react-native'
 import YoutubePlayer from 'react-native-youtube-iframe'
+import { Ionicons } from '@expo/vector-icons'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { supabase } from '../../lib/supabase'
-import { Video, formatDuration, formatViews, timeAgo, recordWatch } from '../../lib/api'
+import { Video, formatDuration, formatViews, timeAgo, recordWatch, toggleLike, isLiked } from '../../lib/api'
 
 const { width } = Dimensions.get('window')
 const PLAYER_HEIGHT = width * (9 / 16)
@@ -18,6 +19,8 @@ export default function PlayerScreen() {
   const [video,   setVideo]   = useState<Video | null>(null)
   const [loading, setLoading] = useState(true)
   const [playing, setPlaying] = useState(true)
+  const [liked,   setLiked]   = useState(false)
+  const [likeLoading, setLikeLoading] = useState(false)
 
   useEffect(() => {
     if (!videoId) return
@@ -32,6 +35,7 @@ export default function PlayerScreen() {
         if (!error && data) {
           setVideo(data as Video)
           recordWatch(data.id)
+          isLiked(data.id).then(setLiked)
         }
         setLoading(false)
       })
@@ -107,6 +111,27 @@ export default function PlayerScreen() {
 
             {/* Actions */}
             <View style={styles.actions}>
+              {/* Like button */}
+              <TouchableOpacity
+                style={[styles.actionBtn, liked && styles.actionBtnLiked]}
+                disabled={likeLoading}
+                onPress={async () => {
+                  setLikeLoading(true)
+                  const nowLiked = await toggleLike(video.id)
+                  setLiked(nowLiked)
+                  setLikeLoading(false)
+                }}
+              >
+                <Ionicons
+                  name={liked ? 'heart' : 'heart-outline'}
+                  size={16}
+                  color={liked ? '#ff4d4d' : '#c084fc'}
+                />
+                <Text style={[styles.actionText, liked && styles.actionTextLiked]}>
+                  {liked ? 'Liked' : 'Like'}
+                </Text>
+              </TouchableOpacity>
+
               <TouchableOpacity
                 style={styles.actionBtn}
                 onPress={() => router.push(`/search?q=${encodeURIComponent(video.artist_name)}`)}
@@ -209,7 +234,11 @@ const styles = StyleSheet.create({
     borderWidth:     1,
     borderColor:     '#2d1b4e',
   },
+  actionBtnLiked: {
+    borderColor: '#ff4d4d',
+  },
   actionEmoji: { fontSize: 16 },
   actionText:  { color: '#c084fc', fontSize: 13, fontWeight: '500' },
+  actionTextLiked: { color: '#ff4d4d' },
   noMeta:      { color: '#6b5a80', textAlign: 'center', marginTop: 20 },
 })

@@ -81,7 +81,7 @@ export default function ProfileScreen() {
               <MenuItem
                 icon="time-outline"
                 label="Watch History"
-                onPress={comingSoon}
+                onPress={() => router.push('/history')}
               />
               <MenuItem
                 icon="list-outline"
@@ -91,7 +91,7 @@ export default function ProfileScreen() {
               <MenuItem
                 icon="heart-outline"
                 label="Liked Videos"
-                onPress={comingSoon}
+                onPress={() => router.push('/liked')}
               />
             </View>
 

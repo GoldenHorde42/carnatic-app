@@ -153,9 +153,97 @@ export async function recordWatch(videoId: string): Promise<void> {
   if (!user) return // anonymous — no history
 
   await supabase.from('watch_history').upsert({
-    user_id:  user.id,
-    video_id: videoId,
+    user_id:         user.id,
+    video_id:        videoId,
+    last_watched_at: new Date().toISOString(), // ensure UPDATE trigger fires to increment watch_count
   }, { onConflict: 'user_id,video_id' })
+}
+
+// ── Watch history ─────────────────────────────────────────────────────────────
+
+export interface WatchHistoryEntry {
+  video:          Video
+  watch_count:    number
+  last_watched_at: string
+}
+
+export async function getWatchHistory(limit = 50, offset = 0): Promise<{ entries: WatchHistoryEntry[]; total: number }> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { entries: [], total: 0 }
+
+  const { data, error, count } = await supabase
+    .from('watch_history')
+    .select('watch_count, last_watched_at, videos!video_id(*)', { count: 'exact' })
+    .eq('user_id', user.id)
+    .order('last_watched_at', { ascending: false })
+    .range(offset, offset + limit - 1)
+
+  if (error) throw new Error(error.message)
+  return {
+    entries: (data || [])
+      .filter((row: any) => row.videos)
+      .map((row: any) => ({
+        video:           row.videos as Video,
+        watch_count:     row.watch_count || 1,
+        last_watched_at: row.last_watched_at,
+      })),
+    total: count || 0,
+  }
+}
+
+// ── Liked videos ──────────────────────────────────────────────────────────────
+
+export async function getLikedVideos(limit = 50, offset = 0): Promise<{ videos: Video[]; total: number }> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { videos: [], total: 0 }
+
+  const { data, error, count } = await supabase
+    .from('liked_videos')
+    .select('videos!video_id(*)', { count: 'exact' })
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .range(offset, offset + limit - 1)
+
+  if (error) throw new Error(error.message)
+  return {
+    videos: (data || []).filter((row: any) => row.videos).map((row: any) => row.videos as Video),
+    total:  count || 0,
+  }
+}
+
+export async function toggleLike(videoId: string): Promise<boolean> {
+  // Returns true if now liked, false if unliked
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return false
+
+  const { data: existing } = await supabase
+    .from('liked_videos')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('video_id', videoId)
+    .maybeSingle()
+
+  if (existing) {
+    await supabase.from('liked_videos').delete().eq('id', existing.id)
+    return false
+  } else {
+    await supabase.from('liked_videos').insert({ user_id: user.id, video_id: videoId })
+    return true
+  }
+}
+
+export async function isLiked(videoId: string): Promise<boolean> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return false
+
+  const { data } = await supabase
+    .from('liked_videos')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('video_id', videoId)
+    .maybeSingle()
+
+  return !!data
 }
 
 // ── Format helpers ────────────────────────────────────────────────────────────

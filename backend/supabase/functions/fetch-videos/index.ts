@@ -286,9 +286,8 @@ async function fetchByNameSearch(
 ): Promise<{ found: number; added: number; units: number; error?: string }> {
   let totalFound = 0, totalAdded = 0, totalUnits = 0
 
-  // Search for this artist in each trusted channel
-  // We only need a few — sabhas post the most relevant content
-  const channelsToSearch = TRUSTED_CHANNEL_IDS.slice(0, 4) // limit to save quota
+  // Search across ALL trusted channels — sabhas for modern artists, labels for archival
+  const channelsToSearch = TRUSTED_CHANNEL_IDS
 
   for (const channelId of channelsToSearch) {
     const paramsObj: Record<string, string> = {
@@ -305,9 +304,19 @@ async function fetchByNameSearch(
     const searchRes = await fetch(`${YOUTUBE_BASE_URL}/search?${new URLSearchParams(paramsObj)}`)
     totalUnits += 101
 
-    if (!searchRes.ok) continue
+    if (!searchRes.ok) {
+      const errBody = await searchRes.text()
+      console.error(`[Tier2] channel=${channelId} artist=${artist.name} HTTP ${searchRes.status}: ${errBody.slice(0,200)}`)
+      continue
+    }
 
-    const items: YouTubeSearchItem[] = (await searchRes.json()).items || []
+    const body = await searchRes.json()
+    if (body.error) {
+      console.error(`[Tier2] artist=${artist.name} API error: ${JSON.stringify(body.error).slice(0,200)}`)
+      continue
+    }
+
+    const items: YouTubeSearchItem[] = body.items || []
     if (items.length === 0) continue
 
     // Filter: only keep videos where title/description actually mentions artist
@@ -348,9 +357,11 @@ async function fetchByGlobalSearch(
       part:       'snippet',
       type:       'video',
       q:          `${term} carnatic`,  // add "carnatic" to narrow global search
-      maxResults: '15',
+      maxResults: '25',
       order:      'relevance',
-      videoCategoryId: '10',  // Music category
+      // NOTE: do NOT filter by videoCategoryId — archival Carnatic recordings on
+      // Saregama/Times Music are often categorised as "People & Blogs" or "Education",
+      // not "Music" (10). The name+title filter below handles quality control instead.
       key:        YOUTUBE_API_KEY,
     }
     if (publishedAfter) paramsObj.publishedAfter = publishedAfter
@@ -358,20 +369,32 @@ async function fetchByGlobalSearch(
     const searchRes = await fetch(`${YOUTUBE_BASE_URL}/search?${new URLSearchParams(paramsObj)}`)
     totalUnits += 101
 
-    if (!searchRes.ok) continue
+    if (!searchRes.ok) {
+      const errBody = await searchRes.text()
+      console.error(`[Tier3] term="${term}" HTTP ${searchRes.status}: ${errBody.slice(0,200)}`)
+      return { found: 0, added: 0, units: totalUnits, error: `HTTP ${searchRes.status}: ${errBody.slice(0,150)}` }
+    }
 
-    const items: YouTubeSearchItem[] = (await searchRes.json()).items || []
+    const body = await searchRes.json()
+    if (body.error) {
+      console.error(`[Tier3] term="${term}" API error: ${JSON.stringify(body.error).slice(0,200)}`)
+      return { found: 0, added: 0, units: totalUnits, error: `API error: ${JSON.stringify(body.error).slice(0,150)}` }
+    }
+
+    const items: YouTubeSearchItem[] = body.items || []
+    console.log(`[Tier3] term="${term}" raw items=${items.length}`)
     if (items.length === 0) continue
 
-    // Strict filter: title or description must mention the artist
-    // Use all aliases + canonical name parts
+    // Filter: title must mention at least one significant part of any artist name/alias.
+    // Title-only (not description) — archival uploads often have sparse descriptions.
+    // Use `some` (not `every`) — partial name matches are fine since search is already targeted.
     const allTerms = [artist.name, ...(artist.search_aliases || [])]
     const relevant = items.filter(item => {
-      const combined = (item.snippet.title + ' ' + item.snippet.description).toLowerCase()
+      const titleLower = item.snippet.title.toLowerCase()
       return allTerms.some(t =>
         t.toLowerCase().split(/[\s.]+/)
           .filter(p => p.length > 2)
-          .every(part => combined.includes(part))
+          .some(part => titleLower.includes(part))
       )
     })
 

@@ -80,9 +80,8 @@ async function anonymousRecommendations(
 ): Promise<{ videos: VideoRow[]; total: number; reason: string }> {
   let query = serviceClient
     .from('videos')
-    .select('*, artists!inner(book_recommended)', { count: 'exact' })
+    .select('*', { count: 'exact' })
     .eq('is_visible', true)
-    .eq('artists.book_recommended', true)
 
   // Context override
   if (context?.startsWith('raga:')) {
@@ -92,7 +91,7 @@ async function anonymousRecommendations(
   }
 
   const { data, error, count } = await query
-    .order('view_count', { ascending: false })
+    .order('view_count', { ascending: false, nullsFirst: false })
     .range(offset, offset + limit - 1)
 
   if (error) throw new Error(error.message)
