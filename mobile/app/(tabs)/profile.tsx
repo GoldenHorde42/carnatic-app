@@ -104,6 +104,11 @@ export default function ProfileScreen() {
                 onPress={() => router.push('/privacy')}
               />
               <MenuItem
+                icon="document-text-outline"
+                label="Terms of Use"
+                onPress={() => router.push('/terms')}
+              />
+              <MenuItem
                 icon="log-out-outline"
                 label="Sign Out"
                 danger
@@ -135,9 +140,14 @@ export default function ProfileScreen() {
               You can still browse and search without an account
             </Text>
 
-            <TouchableOpacity onPress={() => router.push('/privacy')}>
-              <Text style={styles.privacyLink}>Privacy Policy</Text>
-            </TouchableOpacity>
+            <View style={{ flexDirection: 'row', gap: 16, marginTop: 4 }}>
+              <TouchableOpacity onPress={() => router.push('/privacy')}>
+                <Text style={styles.privacyLink}>Privacy Policy</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => router.push('/terms')}>
+                <Text style={styles.privacyLink}>Terms of Use</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
 

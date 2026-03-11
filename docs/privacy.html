@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- v2 -->
+<!-- v3 — updated March 2026 to address YouTube API ToS compliance -->
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -16,25 +16,22 @@
     }
     header {
       background: #1a1030;
-      border-bottom: 2px solid #FF0000;
+      border-bottom: 2px solid #c084fc;
       padding: 20px 24px;
       display: flex;
       align-items: center;
       gap: 12px;
-    }
-    .logo-badge {
-      background: #FF0000;
-      color: #fff;
-      width: 36px; height: 24px;
-      border-radius: 5px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 12px; font-weight: bold;
     }
     .logo-word {
       color: #fff;
       font-size: 22px;
       font-weight: 700;
       letter-spacing: -0.5px;
+    }
+    .logo-sub {
+      color: #c084fc;
+      font-size: 13px;
+      font-weight: 400;
     }
     .container {
       max-width: 780px;
@@ -68,7 +65,7 @@
     ul { padding-left: 20px; margin-bottom: 10px; }
     li { margin-bottom: 6px; }
     strong { color: #e0e0e0; }
-    a { color: #FF0000; text-decoration: none; }
+    a { color: #c084fc; text-decoration: none; }
     a:hover { text-decoration: underline; }
     .contact-box {
       background: #1a1030;
@@ -86,7 +83,7 @@
       margin-top: 60px;
     }
     .yt-note {
-      background: #1a0000;
+      background: #0a0010;
       border-left: 3px solid #FF0000;
       padding: 12px 16px;
       border-radius: 0 6px 6px 0;
@@ -99,23 +96,29 @@
 <body>
 
 <header>
-  <div class="logo-badge">▶</div>
-  <span class="logo-word">Carnatic</span>
+  <div>
+    <span class="logo-word">Carnatic</span>
+    <span class="logo-sub"> — Carnatic Music Discovery</span>
+  </div>
 </header>
 
 <div class="container">
   <h1>Privacy Policy</h1>
-  <p class="updated">Last updated: February 2026</p>
+  <p class="updated">Last updated: March 2026</p>
 
   <h2>Overview</h2>
   <p>
     Carnatic ("we", "our", or "us") is a mobile application that helps users discover
     Carnatic classical music through curated YouTube videos. We take your privacy seriously.
-    This policy explains what data we collect, how we use it, and your choices.
+    This policy explains what data we collect, how we use it, how we share it, and your choices.
   </p>
   <p>
     You can use the Carnatic app <strong>without creating an account</strong>. An account is
     optional and only needed for personalised recommendations and saved playlists.
+  </p>
+  <p>
+    By using this App you also agree to our
+    <a href="/terms.html">Terms of Use</a>.
   </p>
 
   <h2>Information We Collect</h2>
@@ -131,19 +134,48 @@
   <p>
     We store which videos you have watched and approximate watch duration so we can
     surface relevant recommendations. This data is stored securely in our database
-    and is <strong>never sold or shared with third parties</strong>.
+    and is <strong>never sold or shared with third parties for advertising</strong>.
   </p>
 
-  <p><strong>3. Search queries</strong></p>
+  <p><strong>3. Liked videos (signed-in users only)</strong></p>
+  <p>
+    We store which videos you have liked so you can revisit them. This data is tied to your
+    account and is not shared with third parties.
+  </p>
+
+  <p><strong>4. Search queries</strong></p>
   <p>
     We store anonymised search queries (stripped of any personally identifiable information)
     to improve search quality. Queries are not linked to individual user accounts.
   </p>
 
-  <p><strong>4. Usage analytics</strong></p>
+  <p><strong>5. Usage analytics</strong></p>
   <p>
     We collect anonymised app usage data (screens visited, feature usage) to improve
     the product. This data is aggregated and not linked to your identity.
+  </p>
+
+  <h2>Device Storage and Local Data</h2>
+  <!-- III.A.2g compliance: disclose device-level storage -->
+  <p>
+    The App stores the following information <strong>directly on your device</strong>:
+  </p>
+  <ul>
+    <li>
+      <strong>Authentication session token</strong> — when you sign in with Google, your
+      session token is stored in your device's local storage (via AsyncStorage) so you
+      stay signed in between app sessions. This token does not contain your Google password.
+    </li>
+    <li>
+      <strong>User preferences</strong> — app settings such as your last-viewed tab may be
+      stored locally on your device to improve responsiveness.
+    </li>
+  </ul>
+  <p>
+    We do not use browser cookies (the App is a native mobile application). The local
+    storage mechanisms used (AsyncStorage) are functionally equivalent and serve the same
+    session-persistence purpose. You can clear this data at any time by signing out of the
+    App or uninstalling it.
   </p>
 
   <h2>YouTube API Data</h2>
@@ -159,8 +191,22 @@
   </p>
   <p>
     We cache basic video metadata (title, thumbnail URL, view count, duration) in our
-    database to reduce API calls. We do not store video content itself — all playback
-    happens through YouTube's embedded player.
+    database to reduce API calls and improve performance. We do not store video content
+    itself — all playback happens through YouTube's embedded player.
+  </p>
+  <!-- III.E.4a-g compliance: state 30-day refresh policy -->
+  <p>
+    <strong>YouTube statistics (view counts, etc.)</strong> cached in our database are
+    refreshed at least every <strong>30 days</strong> in accordance with YouTube API
+    Services Developer Policies (Section III.E.4). Statistics that cannot be refreshed
+    within 30 days are removed from our cache. We do not display or store YouTube
+    statistics for longer than 30 days without refreshing them.
+  </p>
+  <p>
+    You can revoke our App's access to YouTube API data via
+    <a href="https://security.google.com/settings/security/permissions" target="_blank">
+      Google Security Settings
+    </a>.
   </p>
   <p>
     We do not use YouTube API data to build user profiles for advertising purposes.
@@ -180,11 +226,50 @@
     <li>Share your personal data without your consent, except as required by law</li>
   </ul>
 
+  <h2>How We Share Your Information</h2>
+  <!-- III.A.2e compliance: explain sharing with internal/external parties -->
+  <p>
+    We do not sell your personal information. We share your information only in the following
+    limited circumstances:
+  </p>
+  <ul>
+    <li>
+      <strong>YouTube / Google (external):</strong> When you watch a video, your interaction
+      is delivered through YouTube's embedded player. YouTube may collect viewing data in
+      accordance with their own
+      <a href="https://policies.google.com/privacy" target="_blank">Privacy Policy</a>.
+      We do not have visibility into or control over YouTube's data collection during playback.
+    </li>
+    <li>
+      <strong>Supabase (external infrastructure provider):</strong> We store your account
+      information, watch history, and liked videos in our Supabase database (hosted on AWS).
+      Supabase acts as a data processor on our behalf and is bound by data processing agreements.
+      They do not use your data for their own purposes.
+      See <a href="https://supabase.com/privacy" target="_blank">Supabase Privacy Policy</a>.
+    </li>
+    <li>
+      <strong>Groq (external AI provider):</strong> When you use natural language search,
+      your anonymised search query is sent to Groq's API for processing. Queries are stripped
+      of personally identifiable information before transmission.
+      See <a href="https://groq.com/privacy-policy/" target="_blank">Groq Privacy Policy</a>.
+    </li>
+    <li>
+      <strong>Legal requirements:</strong> We may disclose your information if required by law,
+      court order, or governmental authority.
+    </li>
+  </ul>
+  <p>
+    We do not share your personal data with any other internal teams or external parties
+    beyond those listed above.
+  </p>
+
   <h2>Data Retention</h2>
   <ul>
     <li>Watch history is retained for <strong>12 months</strong> and then automatically deleted</li>
+    <li>Liked videos are retained until you unlike them or delete your account</li>
     <li>If you delete your account, all personal data is permanently deleted within <strong>30 days</strong></li>
     <li>Anonymised analytics data is retained for up to <strong>24 months</strong></li>
+    <li>YouTube statistics cached in our database are refreshed or deleted within <strong>30 days</strong></li>
   </ul>
 
   <h2>Children's Privacy</h2>
@@ -206,7 +291,11 @@
     <li>Request correction of inaccurate data</li>
     <li>Request deletion of your account and all associated data</li>
     <li>Opt out of personalised recommendations by using the app without an account</li>
-    <li>Revoke Google sign-in access at any time via your Google account settings</li>
+    <li>Revoke Google sign-in access at any time via your
+      <a href="https://security.google.com/settings/security/permissions" target="_blank">
+        Google account settings
+      </a>
+    </li>
   </ul>
   <p>
     To exercise any of these rights, email us at
@@ -225,7 +314,7 @@
   <h2>Third-Party Services</h2>
   <p>The app uses the following third-party services, each with their own privacy policies:</p>
   <ul>
-    <li><a href="https://policies.google.com/privacy" target="_blank">Google / YouTube</a> — video search and playback</li>
+    <li><a href="https://policies.google.com/privacy" target="_blank">Google / YouTube</a> — video search and playback via YouTube Data API v3</li>
     <li><a href="https://supabase.com/privacy" target="_blank">Supabase</a> — database and authentication infrastructure</li>
     <li><a href="https://groq.com/privacy-policy/" target="_blank">Groq</a> — natural language search query processing (anonymised queries only)</li>
   </ul>
@@ -247,7 +336,9 @@
 </div>
 
 <footer>
-  © 2026 Carnatic App · <a href="mailto:support@carnaticapp.org">support@carnaticapp.org</a>
+  © 2026 Carnatic App ·
+  <a href="/terms.html">Terms of Use</a> ·
+  <a href="mailto:support@carnaticapp.org">support@carnaticapp.org</a>
 </footer>
 
 </body>

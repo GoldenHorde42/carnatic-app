@@ -1,26 +1,18 @@
 /**
- * privacy.tsx — Privacy Policy Screen
+ * privacy.tsx — Privacy Policy Screen (v3, March 2026)
  *
- * Required by:
- *   - Apple App Store (mandatory for apps using Sign in with Apple / Google OAuth)
- *   - Google Play Store (mandatory for apps requesting permissions or using OAuth)
- *   - Google Cloud Console (must provide a URL when configuring OAuth client)
- *
- * Once you have a domain/website, host the contents of this screen at:
- *   https://yourdomain.com/privacy  (or use a free host like GitHub Pages)
- * Then paste that URL into:
- *   - Google Cloud Console → OAuth consent screen → Privacy Policy URL
- *   - App Store Connect → App Information → Privacy Policy URL
- *   - Google Play Console → Store listing → Privacy Policy
+ * Updated to comply with YouTube API Services Developer Policies:
+ *   III.A.2e — explains how user data is shared with internal/external parties
+ *   III.A.2g — discloses device-level data storage (AsyncStorage/local storage)
+ *   III.E.4a-g — states that YouTube statistics are refreshed within 30 days
  */
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { ScrollView, View, Text, StyleSheet, TouchableOpacity, Linking } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { YT } from '../lib/theme'
 
-const LAST_UPDATED = 'February 2026'
-const CONTACT_EMAIL = 'support@carnaticapp.music'
-const PRIVACY_URL   = 'https://goldenhorde42.github.io/carnatic-app/privacy'
+const LAST_UPDATED  = 'March 2026'
+const CONTACT_EMAIL = 'support@carnaticapp.org'
 
 export default function PrivacyPolicy() {
   const router = useRouter()
@@ -41,78 +33,139 @@ export default function PrivacyPolicy() {
         <Section title="Overview">
           Carnatic ("we", "our", or "us") is a mobile application that helps users discover
           Carnatic classical music through curated YouTube videos. We take your privacy seriously.
-          This policy explains what data we collect, how we use it, and your choices.
+          This policy explains what data we collect, how we use it, how we share it, and your choices.{'\n\n'}
+          You can use the Carnatic app without creating an account. An account is optional and only
+          needed for personalised recommendations and saved playlists.{'\n\n'}
+          By using this App you also agree to our{' '}
+          <Text style={styles.link} onPress={() => router.push('/terms')}>
+            Terms of Use
+          </Text>.
         </Section>
 
         <Section title="Information We Collect">
           <Bold>1. Account information (optional)</Bold>{'\n'}
           If you sign in with Google, we receive your name and email address from Google.
-          You can use the app without signing in — no account is required.{'\n\n'}
+          We do not receive your Google password.{'\n\n'}
 
           <Bold>2. Watch history (signed-in users only)</Bold>{'\n'}
-          We store which videos you've watched and for how long, so we can personalise
-          recommendations. This data is stored in our secure database (Supabase) and is
-          never sold to third parties.{'\n\n'}
+          We store which videos you've watched so we can personalise recommendations.
+          This data is never sold to third parties.{'\n\n'}
 
-          <Bold>3. Usage data</Bold>{'\n'}
-          We collect anonymised app usage data (screens visited, searches performed) to
-          improve the app. This data is not linked to your identity.
+          <Bold>3. Liked videos (signed-in users only)</Bold>{'\n'}
+          We store which videos you have liked so you can revisit them.{'\n\n'}
+
+          <Bold>4. Search queries</Bold>{'\n'}
+          We store anonymised search queries (stripped of any personally identifiable
+          information) to improve search quality.{'\n\n'}
+
+          <Bold>5. Usage analytics</Bold>{'\n'}
+          We collect anonymised app usage data (screens visited, feature usage) to improve
+          the product. This data is aggregated and not linked to your identity.
+        </Section>
+
+        <Section title="Device Storage and Local Data">
+          {'The App stores the following information directly on your device:\n\n'}
+          <Bold>Authentication session token</Bold>{' — '}
+          {'when you sign in with Google, your session token is stored in your device\'s local storage (AsyncStorage) so you stay signed in between app sessions. This token does not contain your Google password.\n\n'}
+          <Bold>User preferences</Bold>{' — '}
+          {'app settings and your last-viewed tab may be cached locally on your device to improve responsiveness.\n\n'}
+          We do not use browser cookies (the App is a native mobile application).
+          You can clear this local data by signing out or uninstalling the App.
         </Section>
 
         <Section title="YouTube API Data">
-          This app uses the YouTube Data API to fetch and display videos. By using this app,
-          you also agree to{' '}
-          <Text style={styles.link}>Google's Privacy Policy</Text>
-          {' '}(https://policies.google.com/privacy).{'\n\n'}
-          We do not store full YouTube video data beyond what is necessary for caching and
-          recommendations. Video playback happens directly via YouTube's embedded player.
+          {'This app is '}
+          <Bold>Powered by YouTube</Bold>
+          {'. We use the YouTube Data API v3 to search for and display Carnatic music videos.\n\n'}
+          By using this app, you also agree to{' '}
+          <Text style={styles.link} onPress={() => Linking.openURL('https://policies.google.com/privacy')}>
+            Google's Privacy Policy
+          </Text>
+          {' '}and the{' '}
+          <Text style={styles.link} onPress={() => Linking.openURL('https://www.youtube.com/t/terms')}>
+            YouTube Terms of Service
+          </Text>
+          {'.\n\n'}
+          We cache basic video metadata (title, thumbnail URL, view count, duration) in our
+          database to reduce API calls. We do not store video content — all playback happens
+          through YouTube's embedded player.{'\n\n'}
+          <Bold>30-day data refresh: </Bold>
+          YouTube statistics (view counts, etc.) cached in our database are refreshed at least
+          every 30 days, in accordance with YouTube API Services Developer Policies (III.E.4).
+          Statistics that cannot be refreshed within 30 days are removed from our cache.{'\n\n'}
+          You can revoke the App's access to YouTube data via your{' '}
+          <Text style={styles.link} onPress={() => Linking.openURL('https://security.google.com/settings/security/permissions')}>
+            Google Security Settings
+          </Text>.
         </Section>
 
         <Section title="How We Use Your Information">
-          • To provide personalised video recommendations based on your watch history{'\n'}
-          • To remember your preferences and continue playback where you left off{'\n'}
-          • To improve search relevance and app performance{'\n'}
-          • We do NOT sell your data to advertisers or third parties
+          {'• To provide personalised video recommendations based on your watch history\n'}
+          {'• To remember your preferences within the app\n'}
+          {'• To improve search relevance and app performance\n'}
+          {'• To respond to your support requests\n\n'}
+          We do NOT sell your data to advertisers or any third parties.
+        </Section>
+
+        <Section title="How We Share Your Information">
+          {'We share your information only in the following limited circumstances:\n\n'}
+          <Bold>YouTube / Google (external): </Bold>
+          {'When you watch a video, your interaction is delivered through YouTube\'s embedded player. YouTube may collect viewing data per their own Privacy Policy. We do not control YouTube\'s data collection during playback.\n\n'}
+          <Bold>Supabase (infrastructure): </Bold>
+          {'We store your account information, watch history, and liked videos in our Supabase database (hosted on AWS). Supabase acts as a data processor and does not use your data for their own purposes.\n\n'}
+          <Bold>Groq (AI search): </Bold>
+          {'When you use natural language search, your anonymised query is sent to Groq\'s API for processing. Queries are stripped of personally identifiable information before transmission.\n\n'}
+          <Bold>Legal requirements: </Bold>
+          We may disclose your information if required by law or court order.
         </Section>
 
         <Section title="Data Retention">
-          • Watch history is retained for 12 months and then deleted automatically{'\n'}
-          • If you delete your account, all your data is permanently deleted within 30 days{'\n'}
-          • Anonymous usage analytics are retained for up to 24 months
-        </Section>
-
-        <Section title="Your Rights">
-          You have the right to:{'\n'}
-          • Access the personal data we hold about you{'\n'}
-          • Request deletion of your account and associated data{'\n'}
-          • Opt out of personalised recommendations (by using the app without signing in){'\n\n'}
-          To exercise these rights, email us at {CONTACT_EMAIL}
+          {'• Watch history is retained for 12 months and then deleted automatically\n'}
+          {'• Liked videos are retained until you unlike them or delete your account\n'}
+          {'• If you delete your account, all personal data is permanently deleted within 30 days\n'}
+          {'• Anonymous analytics are retained for up to 24 months\n'}
+          • YouTube statistics cached in our database are refreshed or deleted within 30 days
         </Section>
 
         <Section title="Children's Privacy">
-          This app is designed for use by music students of all ages, including children.
+          This app is designed for music students of all ages, including children.
           We do not knowingly collect personal information from children under 13 without
-          parental consent. If you believe we have inadvertently collected information from
-          a child, please contact us immediately.
+          parental consent. Users under 13 are encouraged to use the app without signing in —
+          all core features work without an account.{'\n\n'}
+          If you believe we have inadvertently collected information from a child under 13,
+          please contact us immediately at {CONTACT_EMAIL}.
+        </Section>
+
+        <Section title="Your Rights">
+          {'You have the right to:\n'}
+          {'• Access the personal data we hold about you\n'}
+          {'• Request correction of inaccurate data\n'}
+          {'• Request deletion of your account and all associated data\n'}
+          {'• Opt out of personalised recommendations (use the app without signing in)\n'}
+          {'• Revoke Google sign-in access via your Google account settings\n\n'}
+          To exercise any of these rights, email: {CONTACT_EMAIL}
         </Section>
 
         <Section title="Security">
-          Your data is stored securely on Supabase (hosted on AWS), which provides
-          encryption at rest and in transit. We use industry-standard security practices.
+          Your data is stored on Supabase (hosted on AWS), which provides encryption at rest
+          (AES-256) and in transit (TLS 1.2+). We use Row-Level Security (RLS) policies to
+          ensure users can only access their own data.
         </Section>
 
         <Section title="Changes to This Policy">
           We may update this policy from time to time. We'll notify you of significant
-          changes through the app. Continued use after changes constitutes acceptance.
+          changes through the app or by email. Continued use after changes constitutes acceptance.
         </Section>
 
         <Section title="Contact Us">
-          If you have any questions about this privacy policy, please email:{'\n'}
-          {CONTACT_EMAIL}
+          {`If you have any questions about this privacy policy:\n${CONTACT_EMAIL}`}
         </Section>
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>© 2026 Carnatic App. All rights reserved.</Text>
+          <TouchableOpacity onPress={() => router.push('/terms')} style={{ marginTop: 8 }}>
+            <Text style={styles.link}>Terms of Use</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
@@ -184,7 +237,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   link: {
-    color:           YT.red,
+    color:           '#c084fc',
     textDecorationLine: 'underline',
   },
   footer: {

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   View, Text, ScrollView, TouchableOpacity,
-  StyleSheet, Dimensions, ActivityIndicator,
+  StyleSheet, Dimensions, ActivityIndicator, Linking,
 } from 'react-native'
 import YoutubePlayer from 'react-native-youtube-iframe'
 import { Ionicons } from '@expo/vector-icons'
@@ -67,7 +67,13 @@ export default function PlayerScreen() {
           <ActivityIndicator color="#c084fc" style={{ marginTop: 20 }} />
         ) : video ? (
           <>
-            <Text style={styles.title}>{video.title}</Text>
+            {/* Title — tapping opens the video on YouTube (III.I.4 compliance) */}
+            <TouchableOpacity
+              onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${videoId}`)}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.title, styles.titleLink]}>{video.title}</Text>
+            </TouchableOpacity>
 
             <View style={styles.metaRow}>
               <Text style={styles.artist}>{video.artist_name}</Text>
@@ -149,6 +155,15 @@ export default function PlayerScreen() {
                   <Text style={styles.actionText}>More {video.raga}</Text>
                 </TouchableOpacity>
               )}
+
+              {/* Watch on YouTube — required by YouTube API ToS (III.I.4 + III.F.2a,b) */}
+              <TouchableOpacity
+                style={[styles.actionBtn, styles.ytBtn]}
+                onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${videoId}`)}
+              >
+                <Ionicons name="logo-youtube" size={16} color="#FF0000" />
+                <Text style={styles.ytBtnText}>Watch on YouTube</Text>
+              </TouchableOpacity>
             </View>
           </>
         ) : (
@@ -241,4 +256,10 @@ const styles = StyleSheet.create({
   actionText:  { color: '#c084fc', fontSize: 13, fontWeight: '500' },
   actionTextLiked: { color: '#ff4d4d' },
   noMeta:      { color: '#6b5a80', textAlign: 'center', marginTop: 20 },
+  titleLink:   { textDecorationLine: 'underline', textDecorationColor: '#3a2a50' },
+  ytBtn: {
+    borderColor: '#3a0000',
+    backgroundColor: '#1a0000',
+  },
+  ytBtnText: { color: '#FF0000', fontSize: 13, fontWeight: '600' },
 })
