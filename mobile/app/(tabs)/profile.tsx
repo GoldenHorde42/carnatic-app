@@ -1,5 +1,5 @@
 import {
-  View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, ToastAndroid, Platform,
+  View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, ToastAndroid, Platform, Linking,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -152,13 +152,16 @@ export default function ProfileScreen() {
         )}
 
         {/* ── Footer ── */}
+        {/* "Powered by YouTube" must link to YouTube per branding guidelines III.F.2 */}
         <View style={styles.footer}>
-          <View style={styles.ytFooterRow}>
-            <View style={styles.ytMini}>
-              <Text style={styles.ytMiniPlay}>▶</Text>
-            </View>
+          <TouchableOpacity
+            style={styles.ytFooterRow}
+            onPress={() => Linking.openURL('https://www.youtube.com')}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="logo-youtube" size={18} color="#FF0000" />
             <Text style={styles.footerPowered}>Powered by YouTube</Text>
-          </View>
+          </TouchableOpacity>
           <Text style={styles.footerVersion}>Carnatic App v1.0</Text>
         </View>
 
