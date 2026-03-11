@@ -5,6 +5,21 @@ Format: `[Date] — What changed — Why`
 
 ---
 
+## [Mar 10, 2026] — YouTube API ToS Compliance + Branding Fixes
+
+### Added
+- `docs/terms.html` — New Terms of Use page explicitly binding users to the YouTube Terms of Service (Policy III.A.1)
+- `mobile/app/terms.tsx` — In-app Terms of Use screen with same content and clickable YouTube ToS link
+- `mobile/app/_layout.tsx` — Registered `/terms` route
+
+### Fixed
+- `docs/privacy.html` (v3) — Added "How We Share Your Information" (III.A.2e), "Device Storage and Local Data" disclosing AsyncStorage usage (III.A.2g), and 30-day YouTube statistics refresh statement (III.E.4a-g). Removed YouTube-red play button from header (III.F.2a,b).
+- `mobile/app/privacy.tsx` — Mirrored all privacy policy fixes in the in-app screen; added links to Terms of Use
+- `mobile/app/player/[videoId].tsx` — Video title now opens `youtube.com/watch?v=...` on tap; added "Watch on YouTube" button with YouTube icon (III.I.4 + III.F.2)
+- `mobile/app/(tabs)/profile.tsx` — "Powered by YouTube" footer is now a tappable link to youtube.com per branding guidelines (III.F.2). Added Terms of Use to Account section and sign-out footer links.
+
+---
+
 ## [Feb 24, 2026] — App Store Connect Setup + Google Sign In Fix
 
 ### Added
