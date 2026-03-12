@@ -120,9 +120,6 @@ export default function ProfileScreen() {
           /* ── Signed-out state ── */
           <View style={styles.signInBlock}>
             <View style={styles.ytLogoLarge}>
-              <View style={styles.ytBadgeLarge}>
-                <Text style={styles.ytPlayLarge}>▶</Text>
-              </View>
               <Text style={styles.ytWordLarge}>Carnatic</Text>
             </View>
 
@@ -269,19 +266,6 @@ const styles = StyleSheet.create({
     alignItems:    'center',
     gap:           10,
     marginBottom:  8,
-  },
-  ytBadgeLarge: {
-    width:           40,
-    height:          28,
-    backgroundColor: YT.red,
-    borderRadius:    6,
-    alignItems:      'center',
-    justifyContent:  'center',
-  },
-  ytPlayLarge: {
-    color:    '#fff',
-    fontSize: 14,
-    marginLeft: 1,
   },
   ytWordLarge: {
     color:      YT.textPrimary,

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   View, Text, ScrollView, TouchableOpacity,
-  RefreshControl, ActivityIndicator, StyleSheet,
+  RefreshControl, ActivityIndicator, StyleSheet, Linking,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -50,10 +50,6 @@ export default function HomeScreen() {
       <View style={styles.topBar}>
         {/* Left: App wordmark */}
         <View style={styles.wordmark}>
-          {/* YouTube-style play button badge */}
-          <View style={styles.ytBadge}>
-            <Text style={styles.ytPlay}>▶</Text>
-          </View>
           <Text style={styles.appName}>Carnatic</Text>
         </View>
 
@@ -135,12 +131,10 @@ export default function HomeScreen() {
         )}
 
         {/* ── "Powered by YouTube" footer (required by YouTube ToS) ── */}
-        <View style={styles.ytFooter}>
-          <View style={styles.ytFooterBadge}>
-            <Text style={styles.ytFooterPlay}>▶</Text>
-          </View>
+        <TouchableOpacity onPress={() => Linking.openURL('https://www.youtube.com')} style={styles.ytFooter}>
+          <Ionicons name="logo-youtube" size={18} color="#FF0000" />
           <Text style={styles.ytFooterText}>Powered by YouTube</Text>
-        </View>
+        </TouchableOpacity>
 
       </ScrollView>
     </View>
@@ -167,19 +161,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems:    'center',
     gap:           7,
-  },
-  ytBadge: {
-    width:           26,
-    height:          18,
-    backgroundColor: YT.red,
-    borderRadius:    4,
-    alignItems:      'center',
-    justifyContent:  'center',
-  },
-  ytPlay: {
-    color:    '#fff',
-    fontSize: 9,
-    marginLeft: 1,
   },
   appName: {
     color:      YT.textPrimary,
@@ -262,14 +243,6 @@ const styles = StyleSheet.create({
     gap:           7,
     paddingVertical: 28,
     paddingBottom: 12,
-  },
-  ytFooterBadge: {
-    width:           20,
-    height:          14,
-    backgroundColor: YT.red,
-    borderRadius:    3,
-    alignItems:      'center',
-    justifyContent:  'center',
   },
   ytFooterPlay: {
     color:    '#fff',
