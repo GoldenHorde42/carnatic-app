@@ -1,0 +1,88 @@
+Subject: Re: Carnatic App — ToS Violations Report V.1 — Compliance Response
+
+Hi YouTube API Services Team,
+
+Following up on my earlier note — all violations from the report have been
+resolved as of March 12, 2026. Here is a full account of what was fixed:
+
+
+── III.D.1c — Multiple project numbers ──────────────────────────────────────
+
+We use a single Google Cloud project: #298276742704, covering both the iOS
+and Android API clients. No additional project numbers are in use.
+
+
+── III.A.1 — Terms of Use ───────────────────────────────────────────────────
+
+A dedicated Terms of Use page is now live at:
+  https://carnaticapp.org/terms.html
+
+It is also accessible in-app via the Library tab. Both include the statement:
+
+  "By using this App, you agree to be bound by the YouTube Terms of Service
+  (https://www.youtube.com/t/terms) and Google's Privacy Policy."
+
+
+── III.A.2e — Data sharing disclosure ───────────────────────────────────────
+
+A "How We Share Your Information" section has been added to our Privacy
+Policy (https://carnaticapp.org/privacy.html), identifying each party:
+YouTube/Google (playback), Supabase (database infrastructure), and Groq
+(anonymised search), along with the legal basis for each.
+
+
+── III.A.2g — Device storage disclosure ─────────────────────────────────────
+
+A "Device Storage and Local Data" section has been added to the Privacy
+Policy, disclosing that the app stores an authentication session token and
+user preferences in device-local storage, explaining its purpose, and how
+to clear it (sign out or uninstall).
+
+
+── III.E.4a-g — YouTube statistics refresh ──────────────────────────────────
+
+The Privacy Policy now includes the following explicit statement:
+
+  "YouTube statistics (view counts, etc.) cached in our database are
+  refreshed at least every 30 days. Statistics that cannot be refreshed
+  within 30 days are removed from our cache."
+
+Our backend pipeline refreshes all video metadata from the YouTube API on
+each scheduled run, ensuring ongoing compliance.
+
+
+── III.F.2a,b — YouTube branding guidelines ─────────────────────────────────
+
+The following changes are live in iOS build 10 / Android (released
+March 12, 2026):
+
+  • Removed custom red play-button badges (▶) from the Home screen header
+    and the Library/Profile sign-in screen. These icons resembled the
+    YouTube logo and have been fully removed.
+  • Removed a similar badge from the website Privacy Policy header.
+  • The "Powered by YouTube" footer on both the Home and Library screens
+    now uses the standard YouTube icon and links to https://www.youtube.com.
+
+
+── III.I.4 — Video title redirect to YouTube ────────────────────────────────
+
+In the video player screen:
+
+  • The video title is now tappable and opens the video directly on YouTube
+    (https://www.youtube.com/watch?v={videoId}).
+  • A dedicated "Watch on YouTube" button has been added to the player
+    actions row, also linking to the YouTube URL.
+
+
+─────────────────────────────────────────────────────────────────────────────
+
+All changes are live at https://carnaticapp.org and in the latest app
+builds. Please don't hesitate to reach out if any screenshots or additional
+information would be helpful.
+
+Thank you again for your patience.
+
+Best regards,
+Goutham Swaminathan
+Carnatic App
+support@carnaticapp.org

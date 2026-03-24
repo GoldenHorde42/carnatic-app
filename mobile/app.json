@@ -25,7 +25,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.carnaticapp.music",
-      "buildNumber": "7",
+      "buildNumber": "10",
       "infoPlist": {
         "NSCameraUsageDescription": "Camera is not used by this app.",
         "NSMicrophoneUsageDescription": "Microphone is not used by this app.",
@@ -45,7 +45,7 @@
         "backgroundColor": "#0f0a1e"
       },
       "package": "com.carnaticapp.music",
-      "versionCode": 1,
+      "versionCode": 3,
       "edgeToEdgeEnabled": true,
       "permissions": []
     },
