@@ -161,8 +161,7 @@ export default function PlayerScreen() {
                 style={[styles.actionBtn, styles.ytBtn]}
                 onPress={() => Linking.openURL(`https://www.youtube.com/watch?v=${videoId}`)}
               >
-                <Ionicons name="logo-youtube" size={16} color="#FF0000" />
-                <Text style={styles.ytBtnText}>Watch on YouTube</Text>
+                <Text style={styles.ytBtnText}>Watch this video on YouTube</Text>
               </TouchableOpacity>
             </View>
           </>

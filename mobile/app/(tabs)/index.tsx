@@ -132,7 +132,6 @@ export default function HomeScreen() {
 
         {/* ── "Powered by YouTube" footer (required by YouTube ToS) ── */}
         <TouchableOpacity onPress={() => Linking.openURL('https://www.youtube.com')} style={styles.ytFooter}>
-          <Ionicons name="logo-youtube" size={18} color="#FF0000" />
           <Text style={styles.ytFooterText}>Powered by YouTube</Text>
         </TouchableOpacity>
 
@@ -237,17 +236,9 @@ const styles = StyleSheet.create({
 
   // ── Footer attribution ──
   ytFooter: {
-    flexDirection: 'row',
-    alignItems:    'center',
     justifyContent:'center',
-    gap:           7,
     paddingVertical: 28,
     paddingBottom: 12,
-  },
-  ytFooterPlay: {
-    color:    '#fff',
-    fontSize: 7,
-    marginLeft: 1,
   },
   ytFooterText: {
     color:    YT.textTertiary,

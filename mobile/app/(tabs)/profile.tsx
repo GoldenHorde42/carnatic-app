@@ -156,7 +156,6 @@ export default function ProfileScreen() {
             onPress={() => Linking.openURL('https://www.youtube.com')}
             activeOpacity={0.7}
           >
-            <Ionicons name="logo-youtube" size={18} color="#FF0000" />
             <Text style={styles.footerPowered}>Powered by YouTube</Text>
           </TouchableOpacity>
           <Text style={styles.footerVersion}>Carnatic App v1.0</Text>
@@ -322,22 +321,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   ytFooterRow: {
-    flexDirection: 'row',
-    alignItems:    'center',
-    gap:           6,
-  },
-  ytMini: {
-    width:           18,
-    height:          12,
-    backgroundColor: YT.red,
-    borderRadius:    3,
-    alignItems:      'center',
-    justifyContent:  'center',
-  },
-  ytMiniPlay: {
-    color:    '#fff',
-    fontSize: 6,
-    marginLeft: 1,
+    alignItems: 'center',
   },
   footerPowered: {
     color:    YT.textTertiary,
