@@ -5,6 +5,19 @@ Format: `[Date] — What changed — Why`
 
 ---
 
+## [Apr 2, 2026] — V2 ToS Remediation + iOS Build 11 Submission
+
+### Fixed
+- `mobile/app/(tabs)/index.tsx` — Removed `logo-youtube` icon from the footer attribution to avoid non-standard logo/icon usage under branding policy III.F.2a,b.
+- `mobile/app/(tabs)/profile.tsx` — Removed `logo-youtube` icon from the Library footer and kept text-only "Powered by YouTube" link for conservative compliance.
+- `mobile/app/player/[videoId].tsx` — Removed YouTube logo icon from the player action row and kept explicit title + button redirects to `youtube.com/watch?v=...` for III.I.4 verification.
+- `docs/index.html` — Removed the red `▶` header badge to avoid any resemblance to non-approved YouTube logo/icon treatment.
+
+### Changed
+- EAS iOS production build `11` (commit `653e7c0`) was submitted to App Store Connect/TestFlight for verification of the V2 policy fixes.
+
+---
+
 ## [Mar 10, 2026] — YouTube API ToS Compliance + Branding Fixes
 
 ### Added
