@@ -1,5 +1,5 @@
 import {
-  View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, ToastAndroid, Platform, Linking,
+  View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, ToastAndroid, Platform, Linking, Image,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -13,6 +13,7 @@ const comingSoon = () => {
     Alert.alert('Coming Soon', 'This feature will be available in a future update.')
   }
 }
+const YOUTUBE_BADGE = require('../../assets/youtube/developed-with-youtube-sentence-case-light.png')
 
 type IoniconName = React.ComponentProps<typeof Ionicons>['name']
 
@@ -156,7 +157,7 @@ export default function ProfileScreen() {
             onPress={() => Linking.openURL('https://www.youtube.com')}
             activeOpacity={0.7}
           >
-            <Text style={styles.footerPowered}>Powered by YouTube</Text>
+            <Image source={YOUTUBE_BADGE} style={styles.ytBadge} resizeMode="contain" />
           </TouchableOpacity>
           <Text style={styles.footerVersion}>Carnatic App v1.0</Text>
         </View>
@@ -323,9 +324,9 @@ const styles = StyleSheet.create({
   ytFooterRow: {
     alignItems: 'center',
   },
-  footerPowered: {
-    color:    YT.textTertiary,
-    fontSize: 12,
+  ytBadge: {
+    width: 160,
+    height: 24,
   },
   footerVersion: {
     color:    YT.textTertiary,

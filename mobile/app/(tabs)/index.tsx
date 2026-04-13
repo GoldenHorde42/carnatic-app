@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import {
   View, Text, ScrollView, TouchableOpacity,
-  RefreshControl, ActivityIndicator, StyleSheet, Linking,
+  RefreshControl, ActivityIndicator, StyleSheet, Linking, Image,
 } from 'react-native'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -18,6 +18,7 @@ const MOODS = [
   { label: 'Energetic',   emoji: '⚡' },
   { label: 'Evening',     emoji: '🌅' },
 ]
+const YOUTUBE_BADGE = require('../../assets/youtube/developed-with-youtube-sentence-case-light.png')
 
 export default function HomeScreen() {
   const router   = useRouter()
@@ -132,7 +133,7 @@ export default function HomeScreen() {
 
         {/* ── "Powered by YouTube" footer (required by YouTube ToS) ── */}
         <TouchableOpacity onPress={() => Linking.openURL('https://www.youtube.com')} style={styles.ytFooter}>
-          <Text style={styles.ytFooterText}>Powered by YouTube</Text>
+          <Image source={YOUTUBE_BADGE} style={styles.ytBadge} resizeMode="contain" />
         </TouchableOpacity>
 
       </ScrollView>
@@ -236,12 +237,13 @@ const styles = StyleSheet.create({
 
   // ── Footer attribution ──
   ytFooter: {
+    alignItems:    'center',
     justifyContent:'center',
     paddingVertical: 28,
     paddingBottom: 12,
   },
-  ytFooterText: {
-    color:    YT.textTertiary,
-    fontSize: 12,
+  ytBadge: {
+    width: 160,
+    height: 24,
   },
 })
