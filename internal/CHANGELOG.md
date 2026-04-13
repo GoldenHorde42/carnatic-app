@@ -5,6 +5,19 @@ Format: `[Date] — What changed — Why`
 
 ---
 
+## [Apr 13, 2026] — Official YouTube Badge + Fresh iOS/Android Builds
+
+### Fixed
+- `mobile/app/(tabs)/index.tsx` — Replaced text-only attribution with official "Developed with YouTube" badge asset from Google branding resources and kept it clickable to YouTube.
+- `mobile/app/(tabs)/profile.tsx` — Replaced text-only attribution with the same official badge to keep branding treatment consistent across Library and Home.
+- `mobile/assets/youtube/developed-with-youtube-sentence-case-light.png` — Added official badge asset downloaded from Google’s branding guideline download links.
+
+### Changed
+- EAS iOS production build `12` (commit `fd550a8`) submitted to App Store Connect/TestFlight.
+- EAS Android preview build for the same commit completed with updated APK output.
+
+---
+
 ## [Apr 2, 2026] — V2 ToS Remediation + iOS Build 11 Submission
 
 ### Fixed
